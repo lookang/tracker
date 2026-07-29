@@ -1203,6 +1203,11 @@ div[id^="Tracker_ToolBarUI_"][id$="div"]::-webkit-scrollbar,
 		pointer-events: none !important;
 	}
 
+	[data-tracker-main-menubar="true"] {
+		visibility: hidden !important;
+		pointer-events: none !important;
+	}
+
 	.tracker-mobile-toolbar-shell {
 		overflow: visible !important;
 		touch-action: manipulation !important;
@@ -1216,7 +1221,7 @@ div[id^="Tracker_ToolBarUI_"][id$="div"]::-webkit-scrollbar,
 		position: fixed;
 		left: var(--tracker-command-left, 4px);
 		top: var(--tracker-command-top, 24px);
-		z-index: 50;
+		z-index: 19000;
 		display: grid;
 		grid-template-columns: repeat(5, minmax(0, 1fr));
 		gap: 4px;

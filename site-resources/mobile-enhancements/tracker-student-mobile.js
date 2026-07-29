@@ -46,7 +46,9 @@
 			var titleTextNode = Array.prototype.find.call(title.childNodes, function (node) {
 				return node.nodeType === 3 && node.nodeValue.trim();
 			});
-			if (titleTextNode) titleTextNode.nodeValue = "Tracker Student Mobile";
+			if (titleTextNode && titleTextNode.nodeValue.trim() !== "Tracker Student Mobile") {
+				titleTextNode.nodeValue = "Tracker Student Mobile";
+			}
 			if (title.querySelector(".tracker-inline-credit")) return;
 
 			title.classList.add("tracker-main-title-with-credit");
@@ -490,7 +492,10 @@
 				return rect.width > 280 && rect.top < 90 && !bar.closest(".tracker-mobile-responsive-window");
 			}
 		);
-		menuBars.forEach(function (bar) { bar.classList.add("tracker-mobile-main-menubar"); });
+		menuBars.forEach(function (bar) {
+			bar.classList.add("tracker-mobile-main-menubar");
+			bar.setAttribute("data-tracker-main-menubar", "true");
+		});
 		var allCommandBars = Array.prototype.slice.call(document.querySelectorAll(".tracker-mobile-commandbar"));
 		var commandbar = allCommandBars[0];
 		allCommandBars.forEach(function (bar) {
@@ -1486,9 +1491,17 @@
 		var availableWidth = Math.max(280, viewport.width - margin * 2);
 		var availableHeight = Math.max(220, viewport.height - margin * 2);
 
-			document.querySelectorAll(".swingjs-window").forEach(function (swingWindow) {
+		document.querySelectorAll(".swingjs-window").forEach(function (swingWindow) {
 			var title = swingWindowTitle(swingWindow);
-			if (!title || title === "Tracker Online") return;
+			if (!title || title === "Tracker Online" ||
+					title.indexOf("Tracker Student Mobile") === 0) {
+				swingWindow.classList.remove(
+					"tracker-mobile-responsive-window",
+					"tracker-mobile-window-active",
+					"tracker-mobile-library-window"
+				);
+				return;
+			}
 			rememberLogicalBounds(swingWindow);
 			swingWindow.classList.add("tracker-mobile-responsive-window");
 			enhanceWindowCloseControl(swingWindow);
@@ -1616,6 +1629,7 @@
 		 * A lightweight poll ensures newly materialized submenu rows are bound. */
 		if (!popupPoller) {
 			popupPoller = global.setInterval(function () {
+				ensureInlineCredit();
 				enhanceMainToolbar();
 				markTouchInteractionSurfaces();
 				suppressNativeSwingMenus();
