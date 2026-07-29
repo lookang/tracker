@@ -114,6 +114,42 @@ div[id^="Tracker_ToolBarUI_"][id$="div"]::-webkit-scrollbar,
 	display: none;
 }
 
+.tracker-toolbar-overflow-toggle {
+	position: fixed;
+	left: var(--tracker-overflow-left);
+	top: var(--tracker-overflow-top);
+	z-index: 19050;
+	display: grid;
+	place-items: center;
+	width: var(--tracker-overflow-size);
+	height: var(--tracker-overflow-size);
+	padding: 0 0 7px;
+	border: 1px solid #71869a;
+	border-radius: 6px;
+	background:
+		linear-gradient(90deg, rgba(255, 255, 255, .82), #fff 24%),
+		linear-gradient(#fff, #edf2f6);
+	box-shadow: -5px 0 8px rgba(236, 242, 247, .95), 0 1px 2px rgba(16, 42, 67, .2);
+	color: #17324a;
+	font: 800 25px/1 system-ui, sans-serif;
+	touch-action: manipulation;
+}
+
+.tracker-toolbar-overflow-toggle[hidden] {
+	display: none !important;
+}
+
+.tracker-toolbar-overflow-toggle.is-showing-remainder {
+	padding-bottom: 3px;
+	background: #e0edf7;
+	font-size: 28px;
+}
+
+.tracker-toolbar-overflow-toggle:focus-visible {
+	outline: 3px solid #1769aa;
+	outline-offset: -3px;
+}
+
 .tracker-touch-interaction-surface {
 	touch-action: none !important;
 	-webkit-user-select: none;

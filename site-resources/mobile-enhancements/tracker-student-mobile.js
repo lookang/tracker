@@ -17,6 +17,8 @@
 	var suppressComboClickUntil = 0;
 	var nativeMenuSuppressionUntil = 0;
 	var mainToolbarShell = null;
+	var toolbarOverflowButton = null;
+	var toolbarOverflowShell = null;
 
 	function byId(id) {
 		return document.getElementById(id);
@@ -480,6 +482,72 @@
 		});
 	}
 
+	function updateToolbarOverflowState() {
+		if (!toolbarOverflowButton || !toolbarOverflowShell ||
+				!toolbarOverflowShell.isConnected) return;
+		var maxScroll = Math.max(0,
+			toolbarOverflowShell.scrollWidth - toolbarOverflowShell.clientWidth);
+		var showingRemainder = maxScroll > 0 &&
+			toolbarOverflowShell.scrollLeft >= maxScroll - 4;
+		toolbarOverflowButton.textContent = showingRemainder ? "‹" : "⋯";
+		toolbarOverflowButton.classList.toggle("is-showing-remainder", showingRemainder);
+		toolbarOverflowButton.setAttribute("aria-expanded", String(showingRemainder));
+		toolbarOverflowButton.setAttribute("aria-label",
+			showingRemainder ? "Show earlier toolbar buttons" : "Show more toolbar buttons");
+		toolbarOverflowButton.title =
+			showingRemainder ? "Show earlier toolbar buttons" : "Show more toolbar buttons";
+	}
+
+	function toggleToolbarOverflow() {
+		var shell = toolbarOverflowShell;
+		if (!shell || !shell.isConnected) return;
+		var maxScroll = Math.max(0, shell.scrollWidth - shell.clientWidth);
+		var showingRemainder = maxScroll > 0 && shell.scrollLeft >= maxScroll - 4;
+		var destination = showingRemainder ? 0 : maxScroll;
+		if (typeof shell.scrollTo === "function") {
+			shell.scrollTo({ left: destination, behavior: "smooth" });
+		} else {
+			shell.scrollLeft = destination;
+		}
+		global.setTimeout(updateToolbarOverflowState, 360);
+	}
+
+	function ensureToolbarOverflowControl(shell, toolbar, compact) {
+		var overflow = Boolean(compact && shell && toolbar &&
+			toolbar.scrollWidth > shell.clientWidth + 4);
+		if (!overflow) {
+			if (toolbarOverflowButton) toolbarOverflowButton.hidden = true;
+			return;
+		}
+
+		if (!toolbarOverflowButton) {
+			toolbarOverflowButton = document.createElement("button");
+			toolbarOverflowButton.type = "button";
+			toolbarOverflowButton.className = "tracker-toolbar-overflow-toggle";
+			toolbarOverflowButton.setAttribute("aria-haspopup", "false");
+			bindNativeSheetButton(toolbarOverflowButton, toggleToolbarOverflow);
+			document.body.appendChild(toolbarOverflowButton);
+		}
+		if (toolbarOverflowShell !== shell) {
+			if (toolbarOverflowShell) {
+				toolbarOverflowShell.removeEventListener("scroll", updateToolbarOverflowState);
+			}
+			toolbarOverflowShell = shell;
+			toolbarOverflowShell.addEventListener("scroll", updateToolbarOverflowState, { passive: true });
+		}
+
+		var rect = shell.getBoundingClientRect();
+		var controlSize = Math.max(34, Math.min(42, Math.floor(rect.height - 2)));
+		setToolbarVariable(toolbarOverflowButton,
+			"--tracker-overflow-left", Math.round(rect.right - controlSize - 1) + "px");
+		setToolbarVariable(toolbarOverflowButton,
+			"--tracker-overflow-top", Math.round(rect.top + 1) + "px");
+		setToolbarVariable(toolbarOverflowButton,
+			"--tracker-overflow-size", controlSize + "px");
+		toolbarOverflowButton.hidden = false;
+		updateToolbarOverflowState();
+	}
+
 	function mainToolbar() {
 		if (mainToolbarShell && mainToolbarShell.isConnected) return mainToolbarShell;
 		mainToolbarShell = null;
@@ -562,6 +630,7 @@
 			});
 			setToolbarVariable(toolbar, "--tracker-toolbar-content-width", Math.ceil(toolbarWidth) + "px");
 		}
+		ensureToolbarOverflowControl(shell, toolbar, compact);
 	}
 
 	function clampPopupMenus() {
