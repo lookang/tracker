@@ -41,13 +41,14 @@
 		Array.prototype.forEach.call(titleNodes, function (title) {
 			var titleText = (title.textContent || "").replace(/\u00a0/g, " ").trim();
 			if (titleText.indexOf("Tracker Online") !== 0 &&
-					titleText.indexOf("Tracker Student Mobile") !== 0) return;
+					titleText.indexOf("Tracker Student Mobile") !== 0 &&
+					titleText.indexOf("Tracker Mobile") !== 0) return;
 
 			var titleTextNode = Array.prototype.find.call(title.childNodes, function (node) {
 				return node.nodeType === 3 && node.nodeValue.trim();
 			});
-			if (titleTextNode && titleTextNode.nodeValue.trim() !== "Tracker Student Mobile") {
-				titleTextNode.nodeValue = "Tracker Student Mobile";
+			if (titleTextNode && titleTextNode.nodeValue.trim() !== "Tracker Mobile") {
+				titleTextNode.nodeValue = "Tracker Mobile ";
 			}
 			if (title.querySelector(".tracker-inline-credit")) return;
 
@@ -56,29 +57,15 @@
 			var credit = document.createElement("span");
 			credit.className = "tracker-inline-credit";
 			credit.setAttribute("aria-label",
-				"Tracker Student Mobile, built on the open-source Tracker project by lookang");
+				"Tracker Mobile by lookang, based on the Tracker Project");
 			credit.title =
-				"Tracker Student Mobile · Built on the open-source Tracker project by lookang";
+				"Tracker Mobile by lookang, based on the Tracker Project";
 
-			var longText = document.createElement("span");
-			longText.className = "tracker-inline-credit-long";
-			longText.appendChild(document.createTextNode(
-				"· Built on the open-source "));
-			longText.appendChild(attributionLink(
-				"Tracker project", "https://opensourcephysics.github.io/tracker-website/"));
-			longText.appendChild(document.createTextNode(" by "));
-			longText.appendChild(attributionLink("lookang", "https://iwant2study.org/"));
-
-			var shortText = document.createElement("span");
-			shortText.className = "tracker-inline-credit-short";
-			shortText.appendChild(document.createTextNode("· "));
-			shortText.appendChild(attributionLink(
-				"Tracker", "https://opensourcephysics.github.io/tracker-website/"));
-			shortText.appendChild(document.createTextNode(" · "));
-			shortText.appendChild(attributionLink("lookang", "https://iwant2study.org/"));
-
-			credit.appendChild(longText);
-			credit.appendChild(shortText);
+			credit.appendChild(document.createTextNode("by "));
+			credit.appendChild(attributionLink("lookang", "https://iwant2study.org/"));
+			credit.appendChild(document.createTextNode(", based on the "));
+			credit.appendChild(attributionLink(
+				"Tracker Project", "https://opensourcephysics.github.io/tracker-website/"));
 			["pointerdown", "mousedown", "touchstart", "click"].forEach(function (eventName) {
 				credit.addEventListener(eventName, function (event) {
 					event.stopPropagation();
@@ -484,57 +471,13 @@
 	}
 
 	function ensureMobileCommandBar(shell) {
-		if (!shell) return;
-		var menuBars = Array.prototype.filter.call(
-			document.querySelectorAll("div[id^='Tracker_MenuBarUI_'][id$='div']"),
-			function (bar) {
-				var rect = bar.getBoundingClientRect();
-				return rect.width > 280 && rect.top < 90 && !bar.closest(".tracker-mobile-responsive-window");
-			}
-		);
-		menuBars.forEach(function (bar) {
-			bar.classList.add("tracker-mobile-main-menubar");
-			bar.setAttribute("data-tracker-main-menubar", "true");
+		document.querySelectorAll(".tracker-mobile-commandbar").forEach(function (bar) {
+			bar.remove();
 		});
-		var allCommandBars = Array.prototype.slice.call(document.querySelectorAll(".tracker-mobile-commandbar"));
-		var commandbar = allCommandBars[0];
-		allCommandBars.forEach(function (bar) {
-			if (bar !== commandbar) bar.remove();
+		document.querySelectorAll("[data-tracker-main-menubar]").forEach(function (bar) {
+			bar.classList.remove("tracker-mobile-main-menubar");
+			bar.removeAttribute("data-tracker-main-menubar");
 		});
-		if (!commandbar) {
-			commandbar = document.createElement("nav");
-			commandbar.className = "tracker-mobile-commandbar";
-			commandbar.setAttribute("aria-label", "Tracker mobile commands");
-			[
-				["project", "Project"], ["track", "New track"], ["measure", "Measure"],
-				["views", "Views"], ["more", "More"]
-			].forEach(function (entry) {
-				var button = document.createElement("button");
-				button.type = "button";
-				button.setAttribute("data-mobile-command", entry[0]);
-				button.textContent = entry[1];
-				bindNativeSheetButton(button, function () { showMobileCommandGroup(entry[0]); });
-				commandbar.appendChild(button);
-			});
-		}
-		/* SwingJS creates its top-level window as a body sibling with its own
-		 * stacking context. Host the command bar at that same level so its
-		 * z-index can reliably place the touch controls above the window. */
-		var commandHost = document.body;
-		if (commandbar.parentElement !== commandHost) commandHost.appendChild(commandbar);
-		commandbar.classList.remove("tracker-mobile-toolbar");
-		var shellRect = shell.getBoundingClientRect();
-		var commandTop = shellRect.top;
-		menuBars.forEach(function (bar) {
-			var rect = bar.getBoundingClientRect();
-			if (rect.width > 280 && rect.height > 0) commandTop = Math.min(commandTop, rect.top);
-		});
-		var commandHeight = Math.max(48, shellRect.bottom - commandTop);
-		setToolbarVariable(commandbar, "--tracker-command-left", Math.round(shellRect.left) + "px");
-		setToolbarVariable(commandbar, "--tracker-command-top", Math.round(commandTop) + "px");
-		setToolbarVariable(commandbar, "--tracker-command-width", Math.round(shellRect.width) + "px");
-		setToolbarVariable(commandbar, "--tracker-command-height", Math.round(commandHeight) + "px");
-		updateMobileCommandBarState();
 	}
 
 	function mainToolbar() {
@@ -1497,7 +1440,8 @@
 		document.querySelectorAll(".swingjs-window").forEach(function (swingWindow) {
 			var title = swingWindowTitle(swingWindow);
 			if (!title || title === "Tracker Online" ||
-					title.indexOf("Tracker Student Mobile") === 0) {
+					title.indexOf("Tracker Student Mobile") === 0 ||
+					title.indexOf("Tracker Mobile") === 0) {
 				swingWindow.classList.remove(
 					"tracker-mobile-responsive-window",
 					"tracker-mobile-window-active",
