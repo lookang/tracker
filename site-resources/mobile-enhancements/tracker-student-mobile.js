@@ -27,6 +27,59 @@
 		if (loading) loading.textContent = message;
 	}
 
+	function attributionLink(text, href) {
+		var link = document.createElement("a");
+		link.textContent = text;
+		link.href = href;
+		link.target = "_blank";
+		link.rel = "noopener noreferrer";
+		return link;
+	}
+
+	function ensureInlineCredit() {
+		var titleNodes = document.querySelectorAll("[id$='_title']");
+		Array.prototype.forEach.call(titleNodes, function (title) {
+			var titleText = (title.textContent || "").replace(/\u00a0/g, " ").trim();
+			if (titleText.indexOf("Tracker Online") !== 0 ||
+					title.querySelector(".tracker-inline-credit")) return;
+
+			title.classList.add("tracker-main-title-with-credit");
+
+			var credit = document.createElement("span");
+			credit.className = "tracker-inline-credit";
+			credit.setAttribute("aria-label",
+				"Tracker Student Mobile, built on the open-source Tracker project by lookang");
+			credit.title =
+				"Tracker Student Mobile · Built on the open-source Tracker project by lookang";
+
+			var longText = document.createElement("span");
+			longText.className = "tracker-inline-credit-long";
+			longText.appendChild(document.createTextNode(
+				"· Tracker Student Mobile · Built on the open-source "));
+			longText.appendChild(attributionLink(
+				"Tracker project", "https://opensourcephysics.github.io/tracker-website/"));
+			longText.appendChild(document.createTextNode(" by "));
+			longText.appendChild(attributionLink("lookang", "https://iwant2study.org/"));
+
+			var shortText = document.createElement("span");
+			shortText.className = "tracker-inline-credit-short";
+			shortText.appendChild(document.createTextNode("· Student Mobile · "));
+			shortText.appendChild(attributionLink(
+				"Tracker", "https://opensourcephysics.github.io/tracker-website/"));
+			shortText.appendChild(document.createTextNode(" · "));
+			shortText.appendChild(attributionLink("lookang", "https://iwant2study.org/"));
+
+			credit.appendChild(longText);
+			credit.appendChild(shortText);
+			["pointerdown", "mousedown", "touchstart", "click"].forEach(function (eventName) {
+				credit.addEventListener(eventName, function (event) {
+					event.stopPropagation();
+				});
+			});
+			title.appendChild(credit);
+		});
+	}
+
 	function legacyFrame() {
 		if (!app) return null;
 		if (typeof app.getMainFrame === "function") return app.getMainFrame();
@@ -1659,6 +1712,7 @@
 
 	function resizeTracker() {
 		resizeQueued = false;
+		ensureInlineCredit();
 		var frame = legacyFrame();
 		if (!frame) return;
 		var stage = byId("tracker-stage");
@@ -1702,6 +1756,7 @@
 		app = trackerApp;
 		var loading = byId("loading-message");
 		if (loading) loading.hidden = true;
+		ensureInlineCredit();
 		bindResize();
 		bindComboTouchBridge();
 		bindTouchMouseBridge();
