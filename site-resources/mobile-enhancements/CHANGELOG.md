@@ -81,6 +81,7 @@ releases.
 | `20260729-sm2` | Source refinement | Moved the project attribution from the fixed bottom footer into Tracker's native title row beside “Tracker Online,” restoring the footer's reserved workspace height. Desktop displays the full credit and links; narrow phone layouts use a compact linked form so the close control and scientific workspace remain unobstructed. |
 | `20260729-sm3` | iPad layout fix | Renamed the visible SwingJS window and browser tab to Tracker Student Mobile and retained linked Tracker/lookang attribution in the title row. Moved the five-button command bar out of the clipped SwingJS toolbar subtree and positioned it from the real menu/toolbar bounds at viewport level, preventing Safari on iPad from cutting off the tops of the buttons. |
 | `20260729-sm4` | Live-layout correction | Kept the renamed main Tracker frame excluded from popup-window reflow, raised the viewport-level command bar above SwingJS's window layer, persisted main-menu suppression with a data attribute, and restored the linked title after SwingJS repaints it. This prevents the title change itself from altering the main workspace geometry. |
+| `20260729-sm5` | Stacking correction | Hosted the fixed command bar directly under the document body rather than inside the lower Tracker stage stacking context. Its viewport geometry is unchanged, but the five buttons now render above the SwingJS top-level window instead of behind it. |
 
 ## Current mobile design decisions
 

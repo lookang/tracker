@@ -517,7 +517,10 @@
 				commandbar.appendChild(button);
 			});
 		}
-		var commandHost = byId("tracker-stage") || document.body;
+		/* SwingJS creates its top-level window as a body sibling with its own
+		 * stacking context. Host the command bar at that same level so its
+		 * z-index can reliably place the touch controls above the window. */
+		var commandHost = document.body;
 		if (commandbar.parentElement !== commandHost) commandHost.appendChild(commandbar);
 		commandbar.classList.remove("tracker-mobile-toolbar");
 		var shellRect = shell.getBoundingClientRect();
