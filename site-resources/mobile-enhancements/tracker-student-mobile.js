@@ -1283,6 +1283,16 @@
 			readout.textContent = path;
 			readout.setAttribute("title", path);
 		}
+		var openSelected = swingWindow.querySelector(".tracker-library-open-selected");
+		var recordName = libraryLabelText(label);
+		var openable = label.classList.contains("tracker-library-tree-file") &&
+			/\.(?:trz|trk)$/i.test(recordName);
+		if (openSelected) {
+			openSelected.disabled = !openable;
+			openSelected.setAttribute("aria-label",
+				openable ? "Open selected Tracker file " + recordName :
+					"Select a Tracker file to open");
+		}
 	}
 
 	function setLibraryView(swingWindow, view) {
@@ -1307,12 +1317,37 @@
 			'<button type="button" data-library-view="details" aria-pressed="false">Details</button>' +
 			'</div>' +
 			'<div class="tracker-library-path"><span>Selected</span>' +
-			'<output class="tracker-library-path-readout" title="No item selected">No item selected</output></div>';
+			'<output class="tracker-library-path-readout" title="No item selected">No item selected</output>' +
+			'<button type="button" class="tracker-library-open-selected" disabled ' +
+				'aria-label="Select a Tracker file to open">Open selected</button></div>';
 		panel.appendChild(viewbar);
 		Array.prototype.forEach.call(viewbar.querySelectorAll("button[data-library-view]"), function (button) {
 			button.addEventListener("click", function () {
 				setLibraryView(swingWindow, button.getAttribute("data-library-view"));
 			});
+		});
+		var openSelected = viewbar.querySelector(".tracker-library-open-selected");
+		bindNativeSheetButton(openSelected, function () {
+			if (openSelected.disabled) return;
+			var selected = swingWindow.querySelector(
+				".tracker-library-tree-label.tracker-library-selected");
+			var recordName = libraryLabelText(selected);
+			if (!/\.(?:trz|trk)$/i.test(recordName)) return;
+			openSelected.textContent = "Opening\u2026";
+			openSelected.disabled = true;
+			global.setTimeout(function () {
+				/* A selected library record is opened by the Library Browser's
+				 * download action. The URL/Open command navigates collections and
+				 * can leave a selected .trz in preview-only "No metadata" state. */
+				var download = swingWindow.querySelector(".tracker-library-download");
+				var opened = Boolean(download && invokeLibraryJavaAction(download));
+				if (!opened) opened = openSelectedLibraryRecord(recordName);
+				global.setTimeout(function () {
+					if (!openSelected.isConnected) return;
+					openSelected.textContent = opened ? "Open selected" : "Try again";
+					openSelected.disabled = !selected || !selected.isConnected;
+				}, opened ? 1200 : 500);
+			}, 0);
 		});
 	}
 

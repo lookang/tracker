@@ -762,6 +762,7 @@ div[id^="Tracker_ToolBarUI_"][id$="div"]::-webkit-scrollbar,
 
 .tracker-mobile-library-window .tracker-library-path-readout {
 	display: block;
+	flex: 1 1 auto;
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -769,6 +770,31 @@ div[id^="Tracker_ToolBarUI_"][id$="div"]::-webkit-scrollbar,
 	font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
 	font-size: 14px;
 	color: #18354e;
+}
+
+.tracker-mobile-library-window .tracker-library-open-selected {
+	flex: 0 0 auto;
+	min-width: 112px;
+	height: 34px;
+	padding: 4px 10px;
+	border: 1px solid #1769d2;
+	border-radius: 7px;
+	background: #1769d2;
+	color: #fff;
+	font: 700 14px/1 system-ui, sans-serif;
+	touch-action: manipulation;
+}
+
+.tracker-mobile-library-window .tracker-library-open-selected:disabled {
+	border-color: #9caebe;
+	background: #dfe6ec;
+	color: #607384;
+	opacity: .78;
+}
+
+.tracker-mobile-library-window .tracker-library-open-selected:focus-visible {
+	outline: 3px solid #ffd54a;
+	outline-offset: 1px;
 }
 
 .tracker-mobile-library-window .tracker-library-status {
@@ -1191,6 +1217,13 @@ div[id^="Tracker_ToolBarUI_"][id$="div"]::-webkit-scrollbar,
 }
 
 .tracker-mobile-library-window.tracker-library-compact .tracker-library-path-readout {
+	font-size: 13px;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-open-selected {
+	min-width: 104px;
+	height: 31px;
+	padding: 3px 8px;
 	font-size: 13px;
 }
 
