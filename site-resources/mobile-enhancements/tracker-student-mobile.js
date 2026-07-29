@@ -40,8 +40,14 @@
 		var titleNodes = document.querySelectorAll("[id$='_title']");
 		Array.prototype.forEach.call(titleNodes, function (title) {
 			var titleText = (title.textContent || "").replace(/\u00a0/g, " ").trim();
-			if (titleText.indexOf("Tracker Online") !== 0 ||
-					title.querySelector(".tracker-inline-credit")) return;
+			if (titleText.indexOf("Tracker Online") !== 0 &&
+					titleText.indexOf("Tracker Student Mobile") !== 0) return;
+
+			var titleTextNode = Array.prototype.find.call(title.childNodes, function (node) {
+				return node.nodeType === 3 && node.nodeValue.trim();
+			});
+			if (titleTextNode) titleTextNode.nodeValue = "Tracker Student Mobile";
+			if (title.querySelector(".tracker-inline-credit")) return;
 
 			title.classList.add("tracker-main-title-with-credit");
 
@@ -55,7 +61,7 @@
 			var longText = document.createElement("span");
 			longText.className = "tracker-inline-credit-long";
 			longText.appendChild(document.createTextNode(
-				"· Tracker Student Mobile · Built on the open-source "));
+				"· Built on the open-source "));
 			longText.appendChild(attributionLink(
 				"Tracker project", "https://opensourcephysics.github.io/tracker-website/"));
 			longText.appendChild(document.createTextNode(" by "));
@@ -63,7 +69,7 @@
 
 			var shortText = document.createElement("span");
 			shortText.className = "tracker-inline-credit-short";
-			shortText.appendChild(document.createTextNode("· Student Mobile · "));
+			shortText.appendChild(document.createTextNode("· "));
 			shortText.appendChild(attributionLink(
 				"Tracker", "https://opensourcephysics.github.io/tracker-website/"));
 			shortText.appendChild(document.createTextNode(" · "));
@@ -486,7 +492,7 @@
 		);
 		menuBars.forEach(function (bar) { bar.classList.add("tracker-mobile-main-menubar"); });
 		var allCommandBars = Array.prototype.slice.call(document.querySelectorAll(".tracker-mobile-commandbar"));
-		var commandbar = shell.querySelector(":scope > .tracker-mobile-commandbar") || allCommandBars[0];
+		var commandbar = allCommandBars[0];
 		allCommandBars.forEach(function (bar) {
 			if (bar !== commandbar) bar.remove();
 		});
@@ -506,8 +512,20 @@
 				commandbar.appendChild(button);
 			});
 		}
-		if (commandbar.parentElement !== shell) shell.appendChild(commandbar);
+		var commandHost = byId("tracker-stage") || document.body;
+		if (commandbar.parentElement !== commandHost) commandHost.appendChild(commandbar);
 		commandbar.classList.remove("tracker-mobile-toolbar");
+		var shellRect = shell.getBoundingClientRect();
+		var commandTop = shellRect.top;
+		menuBars.forEach(function (bar) {
+			var rect = bar.getBoundingClientRect();
+			if (rect.width > 280 && rect.height > 0) commandTop = Math.min(commandTop, rect.top);
+		});
+		var commandHeight = Math.max(48, shellRect.bottom - commandTop);
+		setToolbarVariable(commandbar, "--tracker-command-left", Math.round(shellRect.left) + "px");
+		setToolbarVariable(commandbar, "--tracker-command-top", Math.round(commandTop) + "px");
+		setToolbarVariable(commandbar, "--tracker-command-width", Math.round(shellRect.width) + "px");
+		setToolbarVariable(commandbar, "--tracker-command-height", Math.round(commandHeight) + "px");
 		updateMobileCommandBarState();
 	}
 
