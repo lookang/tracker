@@ -1410,8 +1410,7 @@
 		});
 	}
 
-	function enhanceLibrarySplitLayout(swingWindow) {
-		var tree = swingWindow.querySelector(".tracker-library-tree");
+	function enhanceLibraryTreeSplitLayout(tree) {
 		var treePane = tree && tree.closest("div[id^='Tracker_ScrollPaneUI_'][id$='div']");
 		var split = treePane && treePane.parentElement;
 		if (!split || !/^Tracker_SplitPaneUI_/.test(split.id)) return;
@@ -1435,6 +1434,16 @@
 		treePane.classList.add("tracker-library-tree-pane");
 		if (detailsPane) detailsPane.classList.add("tracker-library-details-pane");
 		if (divider) divider.classList.add("tracker-library-divider");
+	}
+
+	function enhanceLibrarySplitLayout(swingWindow) {
+		/* Library tabs retain old hidden trees while a newly loaded collection
+		 * receives another split pane. Enhance every tree so the active pane
+		 * cannot fall back to the narrow desktop split after collection changes. */
+		Array.prototype.forEach.call(
+			swingWindow.querySelectorAll(".tracker-library-tree"),
+			enhanceLibraryTreeSplitLayout
+		);
 	}
 
 	function dispatchLibraryTreeRow(label) {
