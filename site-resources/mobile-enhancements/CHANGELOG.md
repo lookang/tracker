@@ -95,6 +95,7 @@ releases.
 | `20260730-sm16` | Initial wide-tablet collection sheets | Made touch capability—not a maximum viewport width—the deciding factor for nested Library Browser menus and added Back, Close and tap-outside dismissal. Live testing found that a SwingJS-rebuilt menu row could retain its old binding attribute without retaining the actual event listeners; superseded by `sm17`. |
 | `20260730-sm17` | Rebuilt-menu touch rebinding | Replaced copied HTML binding flags with live element markers for submenu triggers and leaf actions. When SwingJS recreates a Library Browser menu, the new row now receives fresh touch listeners and a fresh full-row tap target instead of silently reverting to an unresponsive hover menu. |
 | `20260730-sm18` | Deterministic submenu tap routing | Made activation through the full-row submenu tap overlay always open the touch sheet, even when a tablet browser reports the release as a mouse-compatible event. Desktop hover remains native, while an intentional click or tap gets the same Back/Close sheet on every viewport width. |
+| `20260730-sm19` | Stable tablet submenu release | Gave each rebuilt full-row tap target its own release closure and removed duplicate global pointerdown handling for those overlays. This prevents a tablet tap from hiding the SwingJS menu without opening the touch sheet. |
 
 ## Current mobile design decisions
 

@@ -749,6 +749,11 @@
 	function handleSubmenuPointer(event) {
 		var overlay = event.target && typeof event.target.closest === "function" ?
 			event.target.closest(".tracker-submenu-tap-target") : null;
+		/* Full-row overlays own their release sequence through the direct binding
+		 * installed below. Leaving them to the global capture handler as well can
+		 * open the sheet on pointerdown, detach the target, then let the matching
+		 * compatibility event close it again. */
+		if (overlay) return;
 		var trigger = overlay ? byId(overlay.getAttribute("data-trigger-id")) : submenuTrigger(event.target);
 		if (!trigger) return;
 		event.preventDefault();
@@ -789,23 +794,30 @@
 					event.preventDefault();
 					event.stopImmediatePropagation();
 				}
-			function activateOnRelease(event) {
+			function activateOnRelease(event, forceSheet) {
 				suppress(event);
 				var now = Date.now();
 				if (now - lastActivation < 500) return;
 				lastActivation = now;
-				var preferSheet = target === tapTarget || touchMenuSheetPreferred(event);
+				var preferSheet = forceSheet || touchMenuSheetPreferred(event);
 				/* Defer until the release event finishes so the new sheet cannot become
 				 * the target of the same physical tap. */
 				global.setTimeout(function () { openSubmenuForTap(trigger, preferSheet); }, 0);
 			}
 				[tapTarget, trigger].forEach(function (target) {
+					var forceSheet = target === tapTarget;
 					target.addEventListener("pointerdown", suppress, true);
 					target.addEventListener("mousedown", suppress, true);
 					target.addEventListener("touchstart", suppress, { capture: true, passive: false });
-					target.addEventListener("pointerup", activateOnRelease, true);
-					target.addEventListener("mouseup", activateOnRelease, true);
-					target.addEventListener("touchend", activateOnRelease, { capture: true, passive: false });
+					target.addEventListener("pointerup", function (event) {
+						activateOnRelease(event, forceSheet);
+					}, true);
+					target.addEventListener("mouseup", function (event) {
+						activateOnRelease(event, forceSheet);
+					}, true);
+					target.addEventListener("touchend", function (event) {
+						activateOnRelease(event, forceSheet);
+					}, { capture: true, passive: false });
 					target.addEventListener("click", suppress, true);
 				});
 			}
