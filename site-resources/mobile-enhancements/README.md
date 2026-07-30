@@ -64,6 +64,10 @@ Pedagogy and project mission:
   hover-coordinate popup, while desktop mouse behavior is unchanged.
 - Touch marking and dragging on scientific canvases, including Point Mass,
   calibration tools, shared Tracker handles, coordinate origin, and x-axis.
+- Press and hold for 560 ms on video, plot, table, or World View surfaces to
+  invoke the same native context menu as a mouse right-click. Moving 10 px
+  cancels the hold and starts the original drag, while a short tap retains its
+  marking or selection behavior.
 - A shared 24 x 24 px Step hit target, maintained in `Step.java` and mirrored
   into the generated core with `tools/patch-touch-hit-region.ps1`.
 - Resilient ComPADRE connectivity checks. The generated core allows eight

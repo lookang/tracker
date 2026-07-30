@@ -19,6 +19,7 @@
 	var mainToolbarShell = null;
 	var toolbarOverflowButton = null;
 	var toolbarOverflowShell = null;
+	var longPressHintShown = false;
 
 	function byId(id) {
 		return document.getElementById(id);
@@ -1712,6 +1713,72 @@
 		return target.closest(".tracker-touch-interaction-surface");
 	}
 
+	function touchPointerSnapshot(event, type) {
+		return {
+			type: type || event.type,
+			target: event.target,
+			clientX: event.clientX,
+			clientY: event.clientY,
+			screenX: event.screenX,
+			screenY: event.screenY,
+			button: type === "pointerup" || type === "pointercancel" ? 0 : event.button,
+			buttons: type === "pointerup" || type === "pointercancel" ? 0 : event.buttons,
+			pointerId: event.pointerId,
+			pointerType: "touch",
+			isPrimary: event.isPrimary,
+			pressure: type === "pointerup" || type === "pointercancel" ? 0 : event.pressure
+		};
+	}
+
+	function clearTouchLongPress(pointer) {
+		if (!pointer || !pointer.longPressTimer) return;
+		global.clearTimeout(pointer.longPressTimer);
+		pointer.longPressTimer = null;
+	}
+
+	function dispatchTouchContextMenu(source) {
+		var target = source && source.target;
+		if (!target || !target.isConnected) return;
+		["mousedown", "mouseup", "contextmenu"].forEach(function (type) {
+			var down = type === "mousedown";
+			var event = new MouseEvent(type, {
+				bubbles: true,
+				cancelable: true,
+				view: global,
+				clientX: source.clientX,
+				clientY: source.clientY,
+				screenX: source.screenX,
+				screenY: source.screenY,
+				button: 2,
+				buttons: down ? 2 : 0
+			});
+			Object.defineProperty(event, "trackerLongPressEvent", { value: true });
+			target.dispatchEvent(event);
+		});
+		if (global.navigator && typeof global.navigator.vibrate === "function") {
+			global.navigator.vibrate(12);
+		}
+		var hint = document.querySelector(".tracker-long-press-hint");
+		if (hint) hint.remove();
+	}
+
+	function showLongPressHint() {
+		if (longPressHintShown || typeof global.matchMedia !== "function" ||
+				!global.matchMedia("(pointer: coarse)").matches) return;
+		longPressHintShown = true;
+		var hint = document.createElement("div");
+		hint.className = "tracker-long-press-hint";
+		hint.setAttribute("role", "status");
+		hint.textContent =
+			"Tip: touch and hold a video, plot, table or World View for more options.";
+		document.body.appendChild(hint);
+		global.requestAnimationFrame(function () { hint.classList.add("is-visible"); });
+		global.setTimeout(function () {
+			hint.classList.remove("is-visible");
+			global.setTimeout(function () { if (hint.isConnected) hint.remove(); }, 240);
+		}, 5200);
+	}
+
 	function currentTrackNeedsMarkModifier() {
 		var panel = selectedTrackerPanel();
 		var track = panel && typeof panel.getSelectedTrack$ === "function" ? panel.getSelectedTrack$() : null;
@@ -1772,15 +1839,51 @@
 					if (!touchBridgeSurface(event.target)) return;
 					activeTouchPointer = {
 						pointerId: event.pointerId,
-						shiftKey: currentTrackNeedsMarkModifier()
+						shiftKey: currentTrackNeedsMarkModifier(),
+						down: touchPointerSnapshot(event, "pointerdown"),
+						startX: event.clientX,
+						startY: event.clientY,
+						forwarded: false,
+						longPressed: false,
+						longPressTimer: null
 					};
+					var pointerId = event.pointerId;
+					activeTouchPointer.longPressTimer = global.setTimeout(function () {
+						var pointer = activeTouchPointer;
+						if (!pointer || pointer.pointerId !== pointerId || pointer.forwarded) return;
+						pointer.longPressTimer = null;
+						pointer.longPressed = true;
+						dispatchTouchContextMenu(pointer.down);
+					}, 560);
 				} else if (!activeTouchPointer || event.pointerId !== activeTouchPointer.pointerId) {
 					return;
 				}
 				event.preventDefault();
 				event.stopImmediatePropagation();
-				dispatchTouchPointer(event, activeTouchPointer.shiftKey);
-				if (type === "pointerup" || type === "pointercancel") activeTouchPointer = null;
+				if (type === "pointerdown") return;
+				var pointer = activeTouchPointer;
+				if (type === "pointermove") {
+					var dx = event.clientX - pointer.startX;
+					var dy = event.clientY - pointer.startY;
+					if (!pointer.forwarded && Math.sqrt(dx * dx + dy * dy) >= 10) {
+						clearTouchLongPress(pointer);
+						dispatchTouchPointer(pointer.down, pointer.shiftKey);
+						pointer.forwarded = true;
+					}
+					if (pointer.forwarded) dispatchTouchPointer(event, pointer.shiftKey);
+					return;
+				}
+				clearTouchLongPress(pointer);
+				if (type === "pointercancel") {
+					if (pointer.forwarded) dispatchTouchPointer(event, pointer.shiftKey);
+					activeTouchPointer = null;
+					return;
+				}
+				if (!pointer.longPressed) {
+					if (!pointer.forwarded) dispatchTouchPointer(pointer.down, pointer.shiftKey);
+					dispatchTouchPointer(event, pointer.shiftKey);
+				}
+				activeTouchPointer = null;
 			}, true);
 		});
 	}
@@ -1843,6 +1946,7 @@
 		bindResize();
 		bindComboTouchBridge();
 		bindTouchMouseBridge();
+		showLongPressHint();
 		watchPopupMenus();
 		bindLibraryBrowserDoubleClick();
 		enhanceMainToolbar();
