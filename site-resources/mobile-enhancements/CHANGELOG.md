@@ -91,6 +91,7 @@ releases.
 | `20260730-sm12` | One-tap project LOAD correction | Routed `.trz` and `.trk` rows through the Library Browser's native Open/target `LOAD` command instead of Download, which invoked an unsupported mobile save prompt. The Library Browser now closes after handing the selected activity to Tracker, and folder taps use the selected Java tree path for more reliable single-tap expansion. |
 | `20260730-sm13` | Initial nested folder retry | Added a guarded expansion retry for a folder that began collapsed. Live testing showed this first attempt still ran against the DOM row SwingJS replaced during selection, so a deep folder could continue to need a second tap; superseded by `sm14`. |
 | `20260730-sm14` | Replaced-row folder retry | Reacquired a nested folder by its full collection path after SwingJS replaces the selected DOM row, then retried expansion after the Java model settles. A per-window token cancels the delayed retry as soon as the student taps another item. |
+| `20260730-sm15` | File-row icon spacing | Reserved 24 px for SwingJS's native Tracker resource icon inside enlarged file rows, preventing the icon from covering the first filename character while preserving the right-side `Open` badge. |
 
 ## Current mobile design decisions
 

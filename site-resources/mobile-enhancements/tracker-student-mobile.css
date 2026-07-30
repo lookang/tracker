@@ -960,6 +960,11 @@ div[id^="Tracker_ToolBarUI_"][id$="div"]::-webkit-scrollbar,
 	background: transparent !important;
 }
 
+.tracker-mobile-library-window .tracker-library-tree-label
+		[id$="_icon"] + [id$="_txt"] {
+	margin-left: 24px;
+}
+
 .tracker-mobile-library-window .tracker-library-tree > [id^="Tracker_PanelUI_"][id$="div"] {
 	display: none !important;
 }
