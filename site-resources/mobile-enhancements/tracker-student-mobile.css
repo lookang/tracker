@@ -1276,6 +1276,189 @@ div[id^="Tracker_ToolBarUI_"][id$="div"]::-webkit-scrollbar,
 	display: block !important;
 }
 
+/* Keep the file list as the primary mobile task. Advanced URL/search/editor
+ * controls are available behind one compact disclosure instead of consuming
+ * the top third of a phone or tablet Library Browser. */
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-toolbar-shell,
+.tracker-mobile-library-window.tracker-library-compact.tracker-library-stacked-toolbar .tracker-library-toolbar-shell {
+	height: 48px !important;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-native-toolbar {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	grid-template-rows: 40px;
+	align-items: center;
+	gap: 0 8px;
+	height: 48px;
+	padding: 4px 8px;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-native-toolbar >
+		:not(.tracker-library-tools-toggle):not(.tracker-library-tap-hint) {
+	display: none;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-tools-toggle {
+	display: block;
+	min-width: 116px;
+	height: 38px;
+	padding: 4px 10px;
+	border-color: #47718f;
+	background: #fff;
+	font-size: 14px;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-tap-hint {
+	min-width: 0;
+	overflow: hidden;
+	color: #334f66;
+	font: 600 13px/1.2 system-ui, sans-serif;
+	text-align: right;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-viewbar,
+.tracker-mobile-library-window.tracker-library-compact.tracker-library-stacked-toolbar .tracker-library-viewbar {
+	top: 48px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	height: 48px;
+	padding: 4px 8px;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-view-switch {
+	flex: 0 0 132px;
+	grid-template-columns: 1fr 1fr;
+	gap: 4px;
+	height: 38px;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-view-switch button {
+	height: 36px;
+	border-radius: 6px;
+	font-size: 14px;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-path {
+	height: 38px;
+	padding: 0;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-path > span,
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-open-selected {
+	display: none;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-path-readout {
+	font-size: 12px;
+}
+
+.tracker-mobile-library-window.tracker-library-compact .tracker-library-content,
+.tracker-mobile-library-window.tracker-library-compact.tracker-library-stacked-toolbar .tracker-library-content,
+.tracker-mobile-library-window.tracker-library-compact:not(.tracker-library-stacked-toolbar) .tracker-library-content {
+	top: 96px !important;
+	height: calc(100% - 128px) !important;
+}
+
+.tracker-mobile-library-window.tracker-library-compact.tracker-library-tools-open .tracker-library-toolbar-shell {
+	height: 190px !important;
+}
+
+.tracker-mobile-library-window.tracker-library-compact.tracker-library-tools-open .tracker-library-native-toolbar {
+	grid-template-columns: minmax(0, 1fr) auto;
+	grid-template-rows: 40px 50px 50px 42px;
+	height: 190px;
+}
+
+.tracker-mobile-library-window.tracker-library-compact.tracker-library-tools-open
+		.tracker-library-native-toolbar > :not(.tracker-library-tap-hint) {
+	display: grid;
+}
+
+.tracker-mobile-library-window.tracker-library-compact.tracker-library-tools-open
+		.tracker-library-tools-toggle {
+	grid-column: 1;
+	grid-row: 1;
+	display: block;
+}
+
+.tracker-mobile-library-window.tracker-library-compact.tracker-library-tools-open
+		.tracker-library-tap-hint {
+	grid-column: 2;
+	grid-row: 1;
+}
+
+.tracker-mobile-library-window.tracker-library-compact.tracker-library-tools-open
+		.tracker-library-native-url {
+	grid-column: 1;
+	grid-row: 2;
+}
+
+.tracker-mobile-library-window.tracker-library-compact.tracker-library-tools-open
+		[data-library-action="open"] {
+	grid-column: 2;
+	grid-row: 2;
+}
+
+.tracker-mobile-library-window.tracker-library-compact.tracker-library-tools-open
+		.tracker-library-native-search {
+	grid-column: 1;
+	grid-row: 3;
+}
+
+.tracker-mobile-library-window.tracker-library-compact.tracker-library-tools-open
+		[data-library-action="search"] {
+	grid-column: 2;
+	grid-row: 3;
+}
+
+.tracker-mobile-library-window.tracker-library-compact.tracker-library-tools-open
+		.tracker-library-native-actions {
+	grid-column: 1 / -1;
+	grid-row: 4;
+	display: grid;
+}
+
+.tracker-mobile-library-window.tracker-library-compact.tracker-library-tools-open .tracker-library-viewbar {
+	top: 190px;
+}
+
+.tracker-mobile-library-window.tracker-library-compact.tracker-library-tools-open .tracker-library-content {
+	top: 238px !important;
+	height: calc(100% - 270px) !important;
+}
+
+.tracker-mobile-library-window .tracker-library-tree-label.tracker-library-tree-openable::after {
+	position: absolute;
+	right: 10px;
+	top: 50%;
+	padding: 4px 7px;
+	transform: translateY(-50%);
+	border: 1px solid #6e97b5;
+	border-radius: 999px;
+	background: #eef6ff;
+	color: #174f78;
+	content: "Open";
+	font: 700 12px/1 system-ui, sans-serif;
+}
+
+.tracker-mobile-library-window .tracker-library-tree-label.tracker-library-tree-openable >
+		[id$="_ctr"] {
+	width: calc(100% - var(--tracker-tree-row-left) - 100px) !important;
+}
+
+.tracker-mobile-library-window .tracker-library-tree-label.tracker-library-row-opening::after {
+	content: "Opening\2026";
+}
+
+.tracker-mobile-library-window.tracker-library-opening
+		.tracker-library-tree-label.tracker-library-tree-openable:not(.tracker-library-row-opening) {
+	opacity: .62;
+}
+
 @media (max-width: 820px), (pointer: coarse) {
 	/* Preserve Tracker's native information architecture on every device.
 	 * On narrow phones the toolbar scrolls horizontally instead of being

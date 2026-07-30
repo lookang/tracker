@@ -9,7 +9,7 @@ Active source branch: `lookang/tracker:StudentMobile`, based directly on
 `OpenSourcePhysics/tracker:SwingJS` and its Tracker 6.3.x development line.
 
 Current verified application:
-<https://iwant2study.org/tracker/TrackerStudentMobile.html?v=20260722-115>
+<https://iwant2study.org/tracker/TrackerStudentMobile.html?v=20260730-sm10>
 
 Pedagogy and project mission:
 <https://iwant2study.org/tracker/TrackerStudentMobilePedagogy.html?v=20260721-doc2#mobile-mission>
@@ -21,9 +21,12 @@ Pedagogy and project mission:
 - Larger native popup menus with 48 px touch targets and readable first-level
   widths.
 - Tap activation for SwingJS submenus that otherwise require mouse hover.
-- Double-clicking a Library Browser `.trz` record reuses the same download and
-  open action as the toolbar Open button instead of following SwingJS's stale
-  cached-file branch.
+- A single stationary tap on a Library Browser `.trz` or `.trk` row selects
+  the Java tree node and automatically reuses the native download/open action.
+  A 10 px movement threshold keeps vertical scrolling separate from opening.
+- The compact Library Browser keeps its file list dominant. URL, search,
+  editor, download, and refresh controls collapse behind `Library tools`, and
+  openable Tracker rows carry an explicit `Open` badge.
 - Left-aligned, viewport-width submenu sheets on phones so labels and nested
   choices are not clipped off-screen.
 - Library Browser-safe sizing: touch targets are enlarged locally without
@@ -56,9 +59,9 @@ Pedagogy and project mission:
   project, whose 17-frame GIF otherwise enters the browser movie loader and
   hangs before its video dialog is created.
 - Visual Viewport resizing so the Tracker frame responds to rotation.
-- A single five-button touch command bar: Project, New track, Measure, Views,
-  and More. The controls progressively disclose Tracker's real Java actions;
-  they do not replace or duplicate the analysis model.
+- Tracker's native menu and icon toolbar remain the primary command surface.
+  A conditional three-dot control reveals clipped toolbar items on narrow
+  screens without adding a competing mobile command hierarchy.
 - Direct Java combo-model selection for track, plot, table, column, and other
   dropdowns. Touch devices receive a 48 px choice sheet instead of SwingJS's
   hover-coordinate popup, while desktop mouse behavior is unchanged.

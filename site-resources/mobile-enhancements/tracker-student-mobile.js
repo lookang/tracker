@@ -1131,6 +1131,9 @@
 			nativeToolbar.className = "tracker-library-native-toolbar";
 			nativeToolbar.setAttribute("aria-label", "Library browser controls");
 			nativeToolbar.innerHTML =
+				'<button type="button" class="tracker-library-tools-toggle" aria-expanded="false">' +
+					'Library tools</button>' +
+				'<span class="tracker-library-tap-hint">Tap a Tracker file to open</span>' +
 				'<label class="tracker-library-native-field tracker-library-native-url">' +
 					'<span>Collection URL</span><input type="url" inputmode="url" autocomplete="off"></label>' +
 				'<button type="button" data-library-action="open">Open</button>' +
@@ -1142,6 +1145,14 @@
 					'<button type="button" data-library-action="editor">Open editor</button>' +
 					'<button type="button" data-library-action="refresh">Refresh</button></div>';
 			toolbarShell.appendChild(nativeToolbar);
+			var toolsToggle = nativeToolbar.querySelector(".tracker-library-tools-toggle");
+			bindNativeSheetButton(toolsToggle, function () {
+				var expanded = !swingWindow.classList.contains("tracker-library-tools-open");
+				swingWindow.classList.toggle("tracker-library-tools-open", expanded);
+				toolsToggle.setAttribute("aria-expanded", String(expanded));
+				toolsToggle.textContent = expanded ? "Hide library tools" : "Library tools";
+				queueWindowLayout();
+			});
 			var nativeUrl = nativeToolbar.querySelector(".tracker-library-native-url input");
 			var nativeSearch = nativeToolbar.querySelector(".tracker-library-native-search input");
 			nativeUrl.addEventListener("input", function () {
@@ -1222,6 +1233,7 @@
 					var text = textNode ? textNode.textContent.replace(/\u00a0/g, " ").trim() : "";
 					var isImplementationRoot = /^::\s*indexTRZdl\.php$/i.test(text);
 					var isFile = /\.(?:trz|trk|mp4|m4v|mov|avi|webm|zip|xml|html?|php)$/i.test(text);
+					var isOpenable = /\.(?:trz|trk)$/i.test(text);
 					var nextLabel = labels[labelIndex + 1];
 					var nextBounds = nextLabel ?
 						(nextLabel.getAttribute("data-tracker-logical-tree-bounds") || "0,0,1,16").split(",").map(parseFloat) : null;
@@ -1230,9 +1242,11 @@
 					label.classList.toggle("tracker-library-tree-root-file", isImplementationRoot);
 					label.classList.toggle("tracker-library-tree-folder", !isFile);
 					label.classList.toggle("tracker-library-tree-file", isFile);
+					label.classList.toggle("tracker-library-tree-openable", isOpenable);
 					label.classList.toggle("tracker-library-tree-expanded", childrenExpanded);
 					label.setAttribute("title", text);
-					label.setAttribute("aria-label", (!isFile ? "Folder: " : "File: ") + text);
+					label.setAttribute("aria-label",
+						(isOpenable ? "Open Tracker file: " : (!isFile ? "Folder: " : "File: ")) + text);
 					label.style.setProperty("--tracker-tree-row-left", Math.max(0, bounds[0]) + "px");
 					if (isImplementationRoot) return;
 					label.style.setProperty("--tracker-tree-row-top", (visualIndex * visualRowHeight) + "px");
@@ -1296,6 +1310,49 @@
 		}
 	}
 
+	function openLibraryLabelRecord(label) {
+		var swingWindow = label && label.closest(".tracker-mobile-library-window");
+		var recordName = libraryLabelText(label);
+		if (!swingWindow || !/\.(?:trz|trk)$/i.test(recordName) ||
+				swingWindow._trackerLibraryOpeningRecord) return false;
+		swingWindow._trackerLibraryOpeningRecord = recordName;
+		swingWindow.classList.add("tracker-library-opening");
+		label.classList.add("tracker-library-row-opening");
+		var readout = swingWindow.querySelector(".tracker-library-path-readout");
+		if (readout) {
+			readout.textContent = "Opening " + recordName + "\u2026";
+			readout.setAttribute("title", "Opening " + recordName);
+		}
+		var openSelected = swingWindow.querySelector(".tracker-library-open-selected");
+		if (openSelected) {
+			openSelected.textContent = "Opening\u2026";
+			openSelected.disabled = true;
+		}
+		global.setTimeout(function () {
+			if (!swingWindow.isConnected) return;
+			/* Tree selection settles asynchronously in SwingJS. Reuse the native
+			 * Library Browser download action after the selected Java node is
+			 * stable, so one tap always follows the same proven load path. */
+			var download = swingWindow.querySelector(".tracker-library-download");
+			var opened = Boolean(download && invokeLibraryJavaAction(download));
+			if (!opened) opened = openSelectedLibraryRecord(recordName);
+			global.setTimeout(function () {
+				if (!swingWindow.isConnected) return;
+				swingWindow._trackerLibraryOpeningRecord = null;
+				swingWindow.classList.remove("tracker-library-opening");
+				var current = swingWindow.querySelector(
+					".tracker-library-tree-label.tracker-library-selected");
+				if (current) updateLibrarySelection(current);
+				if (openSelected) openSelected.textContent = opened ? "Open selected" : "Try again";
+				if (!opened && readout) {
+					readout.textContent = "Could not open " + recordName + ". Tap the file again.";
+					readout.setAttribute("title", readout.textContent);
+				}
+			}, opened ? 1400 : 500);
+		}, 360);
+		return true;
+	}
+
 	function setLibraryView(swingWindow, view) {
 		if (!swingWindow) return;
 		var details = view === "details";
@@ -1315,10 +1372,11 @@
 		viewbar.innerHTML =
 			'<div class="tracker-library-view-switch" role="group" aria-label="Library browser view">' +
 			'<button type="button" data-library-view="files" aria-pressed="true">Files</button>' +
-			'<button type="button" data-library-view="details" aria-pressed="false">Details</button>' +
+			'<button type="button" data-library-view="details" aria-pressed="false">Info</button>' +
 			'</div>' +
 			'<div class="tracker-library-path"><span>Selected</span>' +
-			'<output class="tracker-library-path-readout" title="No item selected">No item selected</output>' +
+			'<output class="tracker-library-path-readout" title="Tap a Tracker file to open">' +
+				'Tap a Tracker file to open</output>' +
 			'<button type="button" class="tracker-library-open-selected" disabled ' +
 				'aria-label="Select a Tracker file to open">Open selected</button></div>';
 		panel.appendChild(viewbar);
@@ -1466,12 +1524,11 @@
 		libraryTreeBridgeBound = true;
 		var lastLabel = null;
 		var lastActivation = 0;
-		function handle(event) {
+		var lastTouchActivation = 0;
+		var activeTouch = null;
+		function activate(label, event) {
 			if (event.trackerLogicalCoordinates) return;
-			var label = event.target && typeof event.target.closest === "function" ?
-				event.target.closest(".tracker-library-tree-label") : null;
 			if (!label) return;
-			if (event.type === "pointerdown" && event.pointerType && event.pointerType !== "touch") return;
 			event.preventDefault();
 			event.stopImmediatePropagation();
 			var now = Date.now();
@@ -1480,10 +1537,59 @@
 			lastActivation = now;
 			updateLibrarySelection(label);
 			dispatchLibraryTreeRow(label);
+			if (label.classList.contains("tracker-library-tree-openable")) {
+				openLibraryLabelRecord(label);
+			}
 		}
-		document.addEventListener("pointerdown", handle, true);
-		document.addEventListener("touchstart", handle, { capture: true, passive: false });
-		document.addEventListener("click", handle, true);
+		function pointerDown(event) {
+			if (event.trackerLogicalCoordinates || event.pointerType !== "touch") return;
+			var label = event.target && typeof event.target.closest === "function" ?
+				event.target.closest(".tracker-library-tree-label") : null;
+			if (!label) return;
+			/* Wait until pointerup before selecting or opening. A finger that moves
+			 * is scrolling the tree, not activating whichever row it started on. */
+			event.stopImmediatePropagation();
+			activeTouch = {
+				pointerId: event.pointerId,
+				label: label,
+				clientX: event.clientX,
+				clientY: event.clientY,
+				moved: false
+			};
+		}
+		function pointerMove(event) {
+			if (!activeTouch || event.pointerId !== activeTouch.pointerId) return;
+			event.stopImmediatePropagation();
+			var dx = event.clientX - activeTouch.clientX;
+			var dy = event.clientY - activeTouch.clientY;
+			if (Math.sqrt(dx * dx + dy * dy) >= 10) activeTouch.moved = true;
+		}
+		function pointerUp(event) {
+			if (!activeTouch || event.pointerId !== activeTouch.pointerId) return;
+			var touch = activeTouch;
+			activeTouch = null;
+			event.stopImmediatePropagation();
+			lastTouchActivation = Date.now();
+			if (touch.moved || event.type === "pointercancel") return;
+			activate(touch.label, event);
+		}
+		function click(event) {
+			if (event.trackerLogicalCoordinates) return;
+			var label = event.target && typeof event.target.closest === "function" ?
+				event.target.closest(".tracker-library-tree-label") : null;
+			if (!label) return;
+			if (Date.now() - lastTouchActivation < 700) {
+				event.preventDefault();
+				event.stopImmediatePropagation();
+				return;
+			}
+			activate(label, event);
+		}
+		document.addEventListener("pointerdown", pointerDown, true);
+		document.addEventListener("pointermove", pointerMove, true);
+		document.addEventListener("pointerup", pointerUp, true);
+		document.addEventListener("pointercancel", pointerUp, true);
+		document.addEventListener("click", click, true);
 	}
 
 	function enhanceLibraryWindow(swingWindow) {
