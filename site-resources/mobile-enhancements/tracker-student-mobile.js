@@ -1989,6 +1989,18 @@
 		};
 	}
 
+	function liveTouchTarget(source) {
+		if (!source) return null;
+		var target = null;
+		if (typeof document.elementFromPoint === "function" &&
+				Number.isFinite(source.clientX) && Number.isFinite(source.clientY)) {
+			target = document.elementFromPoint(source.clientX, source.clientY);
+		}
+		if (target && touchBridgeSurface(target)) return target;
+		if (source.target && source.target.isConnected) return source.target;
+		return source.surface && source.surface.isConnected ? source.surface : null;
+	}
+
 	function clearTouchLongPress(pointer) {
 		if (!pointer || !pointer.longPressTimer) return;
 		global.clearTimeout(pointer.longPressTimer);
@@ -1996,8 +2008,11 @@
 	}
 
 	function dispatchTouchContextMenu(source) {
-		var target = source && source.target;
-		if (!target || !target.isConnected) return;
+		/* SwingJS repaints scientific panels by replacing canvas nodes. Resolve the
+		 * live node under the held finger instead of silently abandoning the menu
+		 * when the pointerdown target was detached during the hold interval. */
+		var target = liveTouchTarget(source);
+		if (!target) return;
 		["mousedown", "mouseup", "contextmenu"].forEach(function (type) {
 			var down = type === "mousedown";
 			var event = new MouseEvent(type, {
@@ -2047,7 +2062,8 @@
 	}
 
 	function dispatchTouchPointer(source, shiftKey) {
-		var target = source.target;
+		var target = liveTouchTarget(source);
+		if (!target) return;
 		if (source.type === "pointerdown") {
 			var hover = new PointerEvent("pointermove", {
 				bubbles: true,
@@ -2095,11 +2111,14 @@
 			document.addEventListener(type, function (event) {
 				if (event.trackerShiftTouchEvent || event.pointerType !== "touch") return;
 				if (type === "pointerdown") {
-					if (!touchBridgeSurface(event.target)) return;
+					var surface = touchBridgeSurface(event.target);
+					if (!surface) return;
+					var down = touchPointerSnapshot(event, "pointerdown");
+					down.surface = surface;
 					activeTouchPointer = {
 						pointerId: event.pointerId,
 						shiftKey: currentTrackNeedsMarkModifier(),
-						down: touchPointerSnapshot(event, "pointerdown"),
+						down: down,
 						startX: event.clientX,
 						startY: event.clientY,
 						forwarded: false,

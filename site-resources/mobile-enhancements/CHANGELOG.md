@@ -96,6 +96,7 @@ releases.
 | `20260730-sm17` | Rebuilt-menu touch rebinding | Replaced copied HTML binding flags with live element markers for submenu triggers and leaf actions. When SwingJS recreates a Library Browser menu, the new row now receives fresh touch listeners and a fresh full-row tap target instead of silently reverting to an unresponsive hover menu. |
 | `20260730-sm18` | Deterministic submenu tap routing | Made activation through the full-row submenu tap overlay always open the touch sheet, even when a tablet browser reports the release as a mouse-compatible event. Desktop hover remains native, while an intentional click or tap gets the same Back/Close sheet on every viewport width. |
 | `20260730-sm19` | Stable tablet submenu release | Gave each rebuilt full-row tap target its own release closure and removed duplicate global pointerdown handling for those overlays. This prevents a tablet tap from hiding the SwingJS menu without opening the touch sheet. |
+| `20260730-sm20` | Android video gestures and long press | Restored the lazy-loaded SwingJS `JSMouse2` and `javajs.util.V3` classes needed by two-finger video gestures. Long press now resolves the current painted canvas under the finger before sending Tracker's native right-click sequence, so a SwingJS repaint cannot strand the hold on a detached node. |
 
 ## Current mobile design decisions
 
