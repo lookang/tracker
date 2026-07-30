@@ -1579,18 +1579,32 @@
 			updateLibrarySelection(label);
 			var folderWasExpanded = label.classList.contains("tracker-library-tree-folder") &&
 				label.classList.contains("tracker-library-tree-expanded");
+			var folderPath = !folderWasExpanded &&
+				label.classList.contains("tracker-library-tree-folder") ?
+				libraryLabelPath(label) : "";
+			var swingWindow = label.closest(".tracker-mobile-library-window");
+			var folderRetryToken = folderPath ? String(Date.now()) + ":" + Math.random() : "";
+			if (swingWindow && folderRetryToken) {
+				swingWindow._trackerLibraryFolderRetryToken = folderRetryToken;
+			}
 			dispatchLibraryTreeRow(label);
 			/* Some nested SwingJS nodes apply selection before accepting their first
-			 * expand request. Retry once only when the row began collapsed and is
-			 * still collapsed, so a student never needs a second tap while an
-			 * intentional collapse is left untouched. */
-			if (label.classList.contains("tracker-library-tree-folder") && !folderWasExpanded) {
+			 * expand request and replace the DOM row while doing so. Reacquire that
+			 * same full path after the Java model settles, then retry once only if
+			 * it remains collapsed. A newer tap invalidates this retry token. */
+			if (folderPath && swingWindow) {
 				global.setTimeout(function () {
-					if (label.isConnected &&
-							!label.classList.contains("tracker-library-tree-expanded")) {
-						dispatchLibraryTreeRow(label);
+					if (!swingWindow.isConnected ||
+							swingWindow._trackerLibraryFolderRetryToken !== folderRetryToken) return;
+					var retryLabel = Array.prototype.find.call(
+						swingWindow.querySelectorAll(".tracker-library-tree-label.tracker-library-tree-folder"),
+						function (row) { return libraryLabelPath(row) === folderPath; }
+					);
+					if (retryLabel &&
+							!retryLabel.classList.contains("tracker-library-tree-expanded")) {
+						dispatchLibraryTreeRow(retryLabel);
 					}
-				}, 180);
+				}, 650);
 			}
 			if (label.classList.contains("tracker-library-tree-openable")) {
 				openLibraryLabelRecord(label);
