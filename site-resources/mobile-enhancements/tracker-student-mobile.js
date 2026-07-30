@@ -1577,7 +1577,21 @@
 			lastLabel = label;
 			lastActivation = now;
 			updateLibrarySelection(label);
+			var folderWasExpanded = label.classList.contains("tracker-library-tree-folder") &&
+				label.classList.contains("tracker-library-tree-expanded");
 			dispatchLibraryTreeRow(label);
+			/* Some nested SwingJS nodes apply selection before accepting their first
+			 * expand request. Retry once only when the row began collapsed and is
+			 * still collapsed, so a student never needs a second tap while an
+			 * intentional collapse is left untouched. */
+			if (label.classList.contains("tracker-library-tree-folder") && !folderWasExpanded) {
+				global.setTimeout(function () {
+					if (label.isConnected &&
+							!label.classList.contains("tracker-library-tree-expanded")) {
+						dispatchLibraryTreeRow(label);
+					}
+				}, 180);
+			}
 			if (label.classList.contains("tracker-library-tree-openable")) {
 				openLibraryLabelRecord(label);
 			}
