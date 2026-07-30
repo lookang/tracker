@@ -770,9 +770,15 @@
 		Array.prototype.forEach.call(
 			document.querySelectorAll(".swingjsPopupMenu li.ui-j2smenu-item > .a[aria-haspopup='true']"),
 			function (trigger) {
-				if (trigger.getAttribute("data-tracker-touch-menu") === "true") return;
+				/* SwingJS can replace a menu row while copying its data attributes.
+				 * Use a live expando as the binding source of truth: copied markup
+				 * must receive fresh listeners and a new tap overlay. */
+				if (trigger._trackerTouchMenuBound === true) return;
+				trigger._trackerTouchMenuBound = true;
 				var item = trigger.parentElement;
 				trigger.setAttribute("data-tracker-touch-menu", "true");
+				var staleTapTarget = item.querySelector(":scope > .tracker-submenu-tap-target");
+				if (staleTapTarget) staleTapTarget.remove();
 				var tapTarget = document.createElement("span");
 				tapTarget.className = "tracker-submenu-tap-target";
 				tapTarget.setAttribute("aria-hidden", "true");
@@ -810,9 +816,10 @@
 		Array.prototype.forEach.call(
 			document.querySelectorAll("ul.ui-j2smenu > li.ui-j2smenu-item"),
 			function (item) {
-				if (item.getAttribute("data-tracker-menu-action") === "true") return;
+				if (item._trackerMenuActionBound === true) return;
 				var action = item.querySelector(":scope > .a");
 				if (!action || action.getAttribute("aria-haspopup") === "true") return;
+				item._trackerMenuActionBound = true;
 				item.setAttribute("data-tracker-menu-action", "true");
 				var lastActivation = 0;
 				function activate(event) {

@@ -92,7 +92,8 @@ releases.
 | `20260730-sm13` | Initial nested folder retry | Added a guarded expansion retry for a folder that began collapsed. Live testing showed this first attempt still ran against the DOM row SwingJS replaced during selection, so a deep folder could continue to need a second tap; superseded by `sm14`. |
 | `20260730-sm14` | Replaced-row folder retry | Reacquired a nested folder by its full collection path after SwingJS replaces the selected DOM row, then retried expansion after the Java model settles. A per-window token cancels the delayed retry as soon as the student taps another item. |
 | `20260730-sm15` | File-row icon spacing | Reserved 24 px for SwingJS's native Tracker resource icon inside enlarged file rows, preventing the icon from covering the first filename character while preserving the right-side `Open` badge. |
-| `20260730-sm16` | Wide-tablet collection sheets | Made touch capability—not a maximum viewport width—the deciding factor for nested Library Browser menus. ComPADRE, Tracker Home and Shared Library branches now use tap-driven sheets on iPad and Android tablets of any width, with Back, Close and tap-outside dismissal that also closes the underlying SwingJS popup. |
+| `20260730-sm16` | Initial wide-tablet collection sheets | Made touch capability—not a maximum viewport width—the deciding factor for nested Library Browser menus and added Back, Close and tap-outside dismissal. Live testing found that a SwingJS-rebuilt menu row could retain its old binding attribute without retaining the actual event listeners; superseded by `sm17`. |
+| `20260730-sm17` | Rebuilt-menu touch rebinding | Replaced copied HTML binding flags with live element markers for submenu triggers and leaf actions. When SwingJS recreates a Library Browser menu, the new row now receives fresh touch listeners and a fresh full-row tap target instead of silently reverting to an unresponsive hover menu. |
 
 ## Current mobile design decisions
 
