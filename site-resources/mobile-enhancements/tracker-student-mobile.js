@@ -753,7 +753,7 @@
 		if (!trigger) return;
 		event.preventDefault();
 		event.stopImmediatePropagation();
-		openSubmenuForTap(trigger, touchMenuSheetPreferred(event));
+		openSubmenuForTap(trigger, Boolean(overlay) || touchMenuSheetPreferred(event));
 	}
 
 	function handleSubmenuClick(event) {
@@ -763,7 +763,7 @@
 		if (!trigger) return;
 		event.preventDefault();
 		event.stopImmediatePropagation();
-		openSubmenuForTap(trigger, touchMenuSheetPreferred(event));
+		openSubmenuForTap(trigger, Boolean(overlay) || touchMenuSheetPreferred(event));
 	}
 
 	function bindSubmenuTriggers() {
@@ -794,7 +794,7 @@
 				var now = Date.now();
 				if (now - lastActivation < 500) return;
 				lastActivation = now;
-				var preferSheet = touchMenuSheetPreferred(event);
+				var preferSheet = target === tapTarget || touchMenuSheetPreferred(event);
 				/* Defer until the release event finishes so the new sheet cannot become
 				 * the target of the same physical tap. */
 				global.setTimeout(function () { openSubmenuForTap(trigger, preferSheet); }, 0);
