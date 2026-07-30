@@ -9,7 +9,7 @@ Active source branch: `lookang/tracker:StudentMobile`, based directly on
 `OpenSourcePhysics/tracker:SwingJS` and its Tracker 6.3.x development line.
 
 Current verified application:
-<https://iwant2study.org/tracker/TrackerStudentMobile.html?v=20260730-sm11>
+<https://iwant2study.org/tracker/TrackerStudentMobile.html?v=20260730-sm12>
 
 Pedagogy and project mission:
 <https://iwant2study.org/tracker/TrackerStudentMobilePedagogy.html?v=20260721-doc2#mobile-mission>
@@ -22,7 +22,7 @@ Pedagogy and project mission:
   widths.
 - Tap activation for SwingJS submenus that otherwise require mouse hover.
 - A single stationary tap on a Library Browser `.trz` or `.trk` row selects
-  the Java tree node and automatically reuses the native download/open action.
+  the Java tree node and automatically reuses the native target `LOAD` command.
   A 10 px movement threshold keeps vertical scrolling separate from opening.
 - The compact Library Browser keeps its file list dominant. URL, search,
   editor, download, and refresh controls collapse behind `Library tools`, and

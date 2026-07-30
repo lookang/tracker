@@ -1331,11 +1331,10 @@
 		global.setTimeout(function () {
 			if (!swingWindow.isConnected) return;
 			/* Tree selection settles asynchronously in SwingJS. Reuse the native
-			 * Library Browser download action after the selected Java node is
-			 * stable, so one tap always follows the same proven load path. */
-			var download = swingWindow.querySelector(".tracker-library-download");
-			var opened = Boolean(download && invokeLibraryJavaAction(download));
-			if (!opened) opened = openSelectedLibraryRecord(recordName);
+			 * Library Browser Open command after the selected Java node is stable.
+			 * Download invokes a save-file chooser (and an unsupported prompt in
+			 * mobile SwingJS), while Open fires the target LOAD event Tracker uses. */
+			var opened = openLibraryRecord(swingWindow, recordName);
 			global.setTimeout(function () {
 				if (!swingWindow.isConnected) return;
 				swingWindow._trackerLibraryOpeningRecord = null;
@@ -1351,6 +1350,29 @@
 			}, opened ? 1400 : 500);
 		}, 360);
 		return true;
+	}
+
+	function closeLibraryAfterRecordOpen(swingWindow) {
+		global.setTimeout(function () {
+			var frame = legacyFrame();
+			var browser = frame && (frame.libraryBrowser ||
+				(typeof frame.getLibraryBrowser$ === "function" ? frame.getLibraryBrowser$() : null));
+			if (browser && typeof browser.setVisible$Z === "function") {
+				browser.setVisible$Z(false);
+				return;
+			}
+			var close = swingWindow && swingWindow.querySelector(
+				"[id$='_close'], [id$='_closeButton'], .ui-dialog-titlebar-close");
+			if (close && typeof close.click === "function") close.click();
+		}, 500);
+	}
+
+	function openLibraryRecord(swingWindow, recordName) {
+		var open = swingWindow && swingWindow.querySelector(".tracker-library-open");
+		var opened = Boolean(open && invokeLibraryJavaAction(open));
+		if (!opened) opened = openSelectedLibraryRecord(recordName);
+		if (opened) closeLibraryAfterRecordOpen(swingWindow);
+		return opened;
 	}
 
 	function setLibraryView(swingWindow, view) {
@@ -1395,12 +1417,7 @@
 			openSelected.textContent = "Opening\u2026";
 			openSelected.disabled = true;
 			global.setTimeout(function () {
-				/* A selected library record is opened by the Library Browser's
-				 * download action. The URL/Open command navigates collections and
-				 * can leave a selected .trz in preview-only "No metadata" state. */
-				var download = swingWindow.querySelector(".tracker-library-download");
-				var opened = Boolean(download && invokeLibraryJavaAction(download));
-				if (!opened) opened = openSelectedLibraryRecord(recordName);
+				var opened = openLibraryRecord(swingWindow, recordName);
 				global.setTimeout(function () {
 					if (!openSelected.isConnected) return;
 					openSelected.textContent = opened ? "Open selected" : "Try again";
@@ -1496,9 +1513,24 @@
 			}
 			global.setTimeout(function () {
 				if (isFolder) {
-					var expanded = typeof javaTree.isExpanded$I === "function" && javaTree.isExpanded$I(logicalRow);
-					if (expanded && typeof javaTree.collapseRow$I === "function") javaTree.collapseRow$I(logicalRow);
-					else if (!expanded && typeof javaTree.expandRow$I === "function") javaTree.expandRow$I(logicalRow);
+					var canUsePath = selectionPath &&
+						typeof javaTree.isExpanded$javax_swing_tree_TreePath === "function";
+					var expanded = canUsePath ?
+						javaTree.isExpanded$javax_swing_tree_TreePath(selectionPath) :
+						(typeof javaTree.isExpanded$I === "function" && javaTree.isExpanded$I(logicalRow));
+					if (expanded) {
+						if (canUsePath &&
+							typeof javaTree.collapsePath$javax_swing_tree_TreePath === "function") {
+							javaTree.collapsePath$javax_swing_tree_TreePath(selectionPath);
+						} else if (typeof javaTree.collapseRow$I === "function") {
+							javaTree.collapseRow$I(logicalRow);
+						}
+					} else if (canUsePath &&
+							typeof javaTree.expandPath$javax_swing_tree_TreePath === "function") {
+						javaTree.expandPath$javax_swing_tree_TreePath(selectionPath);
+					} else if (typeof javaTree.expandRow$I === "function") {
+						javaTree.expandRow$I(logicalRow);
+					}
 				}
 				applySelectedNode();
 			}, 0);
@@ -1753,7 +1785,7 @@
 		if (!/\.trz$/i.test(recordName)) return;
 
 		/* SwingJS's native double-click tries to reopen the cached /TEMP path.
-		 * Suppress it and reuse the Library Browser's proven download/open action. */
+		 * Suppress it and reuse the Library Browser's target LOAD command. */
 		event.preventDefault();
 		event.stopImmediatePropagation();
 		global.setTimeout(function () {
