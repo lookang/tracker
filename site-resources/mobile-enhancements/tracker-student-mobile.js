@@ -165,6 +165,20 @@
 		return width <= 820 || (coarse && width <= 1180);
 	}
 
+	function touchMenuSheetPreferred(event) {
+		var eventIsTouch = event && (
+			event.pointerType === "touch" ||
+			event.type === "touchstart" ||
+			event.type === "touchend"
+		);
+		var coarse = typeof global.matchMedia === "function" &&
+			global.matchMedia("(pointer: coarse)").matches;
+		var touchPoints = global.navigator && global.navigator.maxTouchPoints ?
+			global.navigator.maxTouchPoints : 0;
+		return Boolean(eventIsTouch || coarse || touchPoints > 0 ||
+			visualViewportRect().width <= 820);
+	}
+
 	function setToolbarVariable(element, name, value) {
 		if (!element || !element.style || element.style.getPropertyValue(name) === value) return;
 		element.style.setProperty(name, value);
@@ -693,7 +707,7 @@
 		return target.closest(".swingjsPopupMenu li.ui-j2smenu-item > .a[aria-haspopup='true']");
 	}
 
-	function openSubmenuForTap(trigger) {
+	function openSubmenuForTap(trigger, preferSheet) {
 		[trigger.parentElement, trigger].forEach(function (element) {
 			if (!element) return;
 			element.dispatchEvent(new MouseEvent("mouseover", {
@@ -707,12 +721,12 @@
 			/* On a compact touch viewport use the native sheet exclusively. Moving
 			 * the SwingJS submenu under the finger during pointerdown can make the
 			 * matching pointerup/click activate its first row by accident. */
-			if (compactTouchUI(visualViewportRect().width)) {
+			if (preferSheet || touchMenuSheetPreferred()) {
 				submenu.style.setProperty("display", "none", "important");
 				submenu.setAttribute("aria-hidden", "true");
 				submenu.setAttribute("aria-expanded", "false");
 				trigger.setAttribute("aria-expanded", "true");
-				showTouchSubmenuSheet(trigger, submenu);
+				showTouchSubmenuSheet(trigger, submenu, null);
 				return;
 			}
 			function revealSubmenu() {
@@ -739,7 +753,7 @@
 		if (!trigger) return;
 		event.preventDefault();
 		event.stopImmediatePropagation();
-		openSubmenuForTap(trigger);
+		openSubmenuForTap(trigger, touchMenuSheetPreferred(event));
 	}
 
 	function handleSubmenuClick(event) {
@@ -749,7 +763,7 @@
 		if (!trigger) return;
 		event.preventDefault();
 		event.stopImmediatePropagation();
-		openSubmenuForTap(trigger);
+		openSubmenuForTap(trigger, touchMenuSheetPreferred(event));
 	}
 
 	function bindSubmenuTriggers() {
@@ -769,15 +783,16 @@
 					event.preventDefault();
 					event.stopImmediatePropagation();
 				}
-				function activateOnRelease(event) {
-					suppress(event);
-					var now = Date.now();
-					if (now - lastActivation < 500) return;
-					lastActivation = now;
-					/* Defer until the release event finishes so the new sheet cannot become
-					 * the target of the same physical tap. */
-					global.setTimeout(function () { openSubmenuForTap(trigger); }, 0);
-				}
+			function activateOnRelease(event) {
+				suppress(event);
+				var now = Date.now();
+				if (now - lastActivation < 500) return;
+				lastActivation = now;
+				var preferSheet = touchMenuSheetPreferred(event);
+				/* Defer until the release event finishes so the new sheet cannot become
+				 * the target of the same physical tap. */
+				global.setTimeout(function () { openSubmenuForTap(trigger, preferSheet); }, 0);
+			}
 				[tapTarget, trigger].forEach(function (target) {
 					target.addEventListener("pointerdown", suppress, true);
 					target.addEventListener("mousedown", suppress, true);
@@ -840,9 +855,41 @@
 		action.dispatchEvent(clickEvent);
 	}
 
-	function showTouchSubmenuSheet(trigger, submenu) {
+	function hideJavaPopupMenus() {
+		var frame = legacyFrame();
+		if (!frame) return;
+		var roots = [];
+		var browser = frame.libraryBrowser;
+		if (browser) roots.push(browser.fileMenu, browser.collectionsMenu, browser.helpMenu);
+		var menuBar = typeof frame.getJMenuBar$ === "function" ? frame.getJMenuBar$() : null;
+		if (menuBar) roots.push(menuBar);
+		function hide(component) {
+			if (!component) return;
+			if (typeof component.setPopupMenuVisible$Z === "function") {
+				component.setPopupMenuVisible$Z(false);
+			}
+			javaMenuChildren(component).forEach(hide);
+		}
+		roots.forEach(hide);
+	}
+
+	function dismissTouchSubmenuSheet(sheet) {
+		if (sheet && sheet.isConnected) sheet.remove();
+		var backdrop = document.querySelector(".tracker-mobile-submenu-backdrop");
+		if (backdrop) backdrop.remove();
+		hideJavaPopupMenus();
+		queuePopupClamp();
+	}
+
+	function showTouchSubmenuSheet(trigger, submenu, parentState) {
 		var oldSheet = document.querySelector(".tracker-mobile-submenu-sheet");
 		if (oldSheet) oldSheet.remove();
+		var oldBackdrop = document.querySelector(".tracker-mobile-submenu-backdrop");
+		if (oldBackdrop) oldBackdrop.remove();
+		var backdrop = document.createElement("div");
+		backdrop.className = "tracker-mobile-submenu-backdrop";
+		backdrop.setAttribute("aria-hidden", "true");
+		document.body.appendChild(backdrop);
 		var sheet = document.createElement("div");
 		sheet.className = "tracker-mobile-submenu-sheet";
 		sheet.setAttribute("role", "menu");
@@ -851,13 +898,27 @@
 		heading.className = "tracker-mobile-submenu-heading";
 		var headingText = document.createElement("strong");
 		headingText.textContent = sheet.getAttribute("aria-label");
+		var headingActions = document.createElement("span");
+		headingActions.className = "tracker-mobile-sheet-heading-actions";
+		if (parentState) {
+			var back = document.createElement("button");
+			back.type = "button";
+			back.textContent = "Back";
+			back.addEventListener("click", function () {
+				showTouchSubmenuSheet(
+					parentState.trigger, parentState.submenu, parentState.parentState || null);
+			});
+			headingActions.appendChild(back);
+		}
 		var close = document.createElement("button");
 		close.type = "button";
 		close.textContent = "Close";
-		close.addEventListener("click", function () { sheet.remove(); });
+		close.addEventListener("click", function () { dismissTouchSubmenuSheet(sheet); });
 		heading.appendChild(headingText);
-		heading.appendChild(close);
+		headingActions.appendChild(close);
+		heading.appendChild(headingActions);
 		sheet.appendChild(heading);
+		bindNativeSheetButton(backdrop, function () { dismissTouchSubmenuSheet(sheet); });
 
 		Array.prototype.forEach.call(submenu.children, function (item) {
 			if (!item.matches("li.ui-j2smenu-item")) return;
@@ -884,13 +945,17 @@
 				 * pointerdown exposes the application underneath to the same tap. */
 				global.setTimeout(function () {
 					if (nested) {
-						showTouchSubmenuSheet(action, nested);
+						showTouchSubmenuSheet(action, nested, {
+							trigger: trigger,
+							submenu: submenu,
+							parentState: parentState
+						});
 						return;
 					}
 					if (!invokeJavaMenuItem(text)) {
 						if (action) dispatchLogicalMenuClick(item, action);
 					}
-					sheet.remove();
+					dismissTouchSubmenuSheet(sheet);
 				}, 0);
 			}
 			button.addEventListener("pointerdown", suppress, true);

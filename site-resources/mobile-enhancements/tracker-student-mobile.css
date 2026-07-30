@@ -361,6 +361,14 @@ div[id^="Tracker_ToolBarUI_"][id$="div"]::-webkit-scrollbar,
 	touch-action: manipulation;
 }
 
+.tracker-mobile-submenu-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 19990;
+	background: rgba(16, 42, 67, 0.28);
+	touch-action: manipulation;
+}
+
 .tracker-mobile-submenu-sheet {
 	position: fixed;
 	left: max(8px, env(safe-area-inset-left));
