@@ -707,6 +707,15 @@
 		return target.closest(".swingjsPopupMenu li.ui-j2smenu-item > .a[aria-haspopup='true']");
 	}
 
+	function menuTriggerLabel(trigger) {
+		if (!trigger) return "";
+		/* SwingJS renders the icon column as a zero-height label whose text ends up
+		 * in textContent. Read the dedicated text node so a sheet heading cannot
+		 * become ".ComPADRE Library". */
+		var text = trigger.querySelector("[id$='_txt']");
+		return ((text || trigger).textContent || "").replace(/\xa0/g, " ").trim();
+	}
+
 	function openSubmenuForTap(trigger, preferSheet) {
 		[trigger.parentElement, trigger].forEach(function (element) {
 			if (!element) return;
@@ -892,16 +901,67 @@
 		roots.forEach(hide);
 	}
 
+	function clearPopupSheetPromotion() {
+		document.querySelectorAll(".swingjsPopupMenu.tracker-popup-above-sheet")
+			.forEach(function (popup) { popup.classList.remove("tracker-popup-above-sheet"); });
+	}
+
+	/* The sheet backdrop covers the SwingJS popup the student tapped, so its
+	 * remaining rows look available but swallow every tap. Lift that one popup
+	 * above the backdrop instead, keeping the sibling collections selectable
+	 * while the rest of the application stays dimmed and inert. */
+	function promotePopupForSheet(trigger) {
+		clearPopupSheetPromotion();
+		var popup = trigger && typeof trigger.closest === "function" ?
+			trigger.closest(".swingjsPopupMenu") : null;
+		if (popup) popup.classList.add("tracker-popup-above-sheet");
+	}
+
+	function positionTouchSubmenuSheet(sheet, trigger, previousRect) {
+		var viewport = visualViewportRect();
+		var margin = 8;
+		/* Phone widths keep the full-width sheet declared in the stylesheet. */
+		if (viewport.width < 560) return;
+		var width = Math.min(420, viewport.width - margin * 2);
+		var row = trigger && trigger.parentElement ? trigger.parentElement : trigger;
+		var anchor = row ? row.getBoundingClientRect() : null;
+		var left;
+		var top;
+		if (anchor && anchor.width > 0 && anchor.height > 0) {
+			left = anchor.right - 16;
+			if (left + width > viewport.left + viewport.width - margin) {
+				left = anchor.left - width + 16;
+			}
+			top = anchor.top;
+		} else if (previousRect) {
+			/* A nested sheet replaces its parent while that parent's menu row is
+			 * hidden. Keep the stack where the student is already looking. */
+			left = previousRect.left;
+			top = previousRect.top;
+		} else {
+			return;
+		}
+		sheet.style.width = Math.round(width) + "px";
+		sheet.style.right = "auto";
+		var height = Math.min(sheet.getBoundingClientRect().height, viewport.height - margin * 2);
+		sheet.style.left = Math.round(Math.min(Math.max(left, viewport.left + margin),
+			viewport.left + viewport.width - width - margin)) + "px";
+		sheet.style.top = Math.round(Math.min(Math.max(top, viewport.top + margin),
+			viewport.top + viewport.height - height - margin)) + "px";
+	}
+
 	function dismissTouchSubmenuSheet(sheet) {
 		if (sheet && sheet.isConnected) sheet.remove();
 		var backdrop = document.querySelector(".tracker-mobile-submenu-backdrop");
 		if (backdrop) backdrop.remove();
+		clearPopupSheetPromotion();
 		hideJavaPopupMenus();
 		queuePopupClamp();
 	}
 
 	function showTouchSubmenuSheet(trigger, submenu, parentState) {
 		var oldSheet = document.querySelector(".tracker-mobile-submenu-sheet");
+		var previousRect = oldSheet ? oldSheet.getBoundingClientRect() : null;
 		if (oldSheet) oldSheet.remove();
 		var oldBackdrop = document.querySelector(".tracker-mobile-submenu-backdrop");
 		if (oldBackdrop) oldBackdrop.remove();
@@ -909,10 +969,11 @@
 		backdrop.className = "tracker-mobile-submenu-backdrop";
 		backdrop.setAttribute("aria-hidden", "true");
 		document.body.appendChild(backdrop);
+		promotePopupForSheet(trigger);
 		var sheet = document.createElement("div");
 		sheet.className = "tracker-mobile-submenu-sheet";
 		sheet.setAttribute("role", "menu");
-		sheet.setAttribute("aria-label", trigger.textContent.replace(/\u00a0/g, " ").trim());
+		sheet.setAttribute("aria-label", menuTriggerLabel(trigger));
 		var heading = document.createElement("div");
 		heading.className = "tracker-mobile-submenu-heading";
 		var headingText = document.createElement("strong");
@@ -987,6 +1048,7 @@
 			sheet.appendChild(button);
 		});
 		document.body.appendChild(sheet);
+		positionTouchSubmenuSheet(sheet, trigger, previousRect);
 	}
 
 	function invokeJavaMenuItem(label) {
@@ -1270,6 +1332,76 @@
 		});
 	}
 
+	function libraryJavaTree() {
+		var frame = legacyFrame();
+		var browser = frame && (frame.libraryBrowser ||
+			(typeof frame.getLibraryBrowser$ === "function" ? frame.getLibraryBrowser$() : null));
+		var tabbedPane = browser && browser.tabbedPane;
+		var panel = tabbedPane && typeof tabbedPane.getSelectedComponent$ === "function" ?
+			tabbedPane.getSelectedComponent$() : null;
+		return panel && panel.tree ? panel.tree : null;
+	}
+
+	/* ComPADRE and Tracker Home collections name a node after the activity
+	 * ("Inelastic Collision"), never after its file, so the row text carries no
+	 * extension to test. Resolve the Java node through the same logical row
+	 * index the tap bridge dispatches against, and refuse the match whenever the
+	 * model and the rendered row disagree. */
+	function libraryRowNode(label) {
+		var javaTree = libraryJavaTree();
+		if (!javaTree || typeof javaTree.getPathForRow$I !== "function") return null;
+		var bounds = ((label && label.getAttribute("data-tracker-logical-tree-bounds")) || "0,0,1,16")
+			.split(",").map(parseFloat);
+		var rowHeight = Math.max(1, bounds[3] || 16);
+		var path = javaTree.getPathForRow$I(Math.max(0, Math.round(bounds[1] / rowHeight)));
+		var node = path && typeof path.getLastPathComponent$ === "function" ?
+			path.getLastPathComponent$() : null;
+		if (!node || typeof node.getName$ !== "function") return null;
+		if (node.getName$() !== libraryLabelText(label)) return null;
+		return node;
+	}
+
+	function libraryRowTarget(label) {
+		var node = libraryRowNode(label);
+		if (!node || typeof node.getTarget$ !== "function") return "";
+		if (typeof node.isLeaf$ === "function" && !node.isLeaf$()) return "";
+		return (node.getTarget$() || "").trim();
+	}
+
+	/* Tracker decides what it can load from the record type, not from a file
+	 * name. ComPADRE serves every resource through a `.cfm` endpoint, so no
+	 * extension test can recognise one; an unexpanded remote sub-collection
+	 * meanwhile reports itself as a leaf with a target, and only its
+	 * `Collection` type rules it out. */
+	function libraryRowOpensInTracker(label) {
+		var node = libraryRowNode(label);
+		if (!node) return false;
+		if (typeof node.isLeaf$ === "function" && !node.isLeaf$()) return false;
+		var record = node.record;
+		var type = record && typeof record.getType$ === "function" ? record.getType$() : "";
+		if (String(type || "").toLowerCase() === "tracker") return true;
+		var target = typeof node.getTarget$ === "function" ? (node.getTarget$() || "") : "";
+		return /\.(?:trz|trk)$/i.test(target.split(/[?#]/, 1)[0]);
+	}
+
+	function libraryRowIsOpenable(label) {
+		if (!label) return false;
+		if (label.getAttribute("data-tracker-node-open") === "true") return true;
+		return /\.(?:trz|trk)$/i.test(libraryLabelText(label));
+	}
+
+	/* The Library Browser's own Open command drives the load, so this name only
+	 * has to label progress and feed the URL-field fallback. A ComPADRE endpoint
+	 * has no filename worth showing, so the activity title stays. */
+	function libraryRowRecordName(label) {
+		var text = libraryLabelText(label);
+		if (/\.(?:trz|trk)$/i.test(text)) return text;
+		var target = (label && label.getAttribute("data-tracker-node-target")) || "";
+		var clean = target.split(/[?#]/, 1)[0];
+		var file = clean.substring(clean.lastIndexOf("/") + 1);
+		return /\.(?:trz|trk)$/i.test(file) ? file : text;
+	}
+
 	function enhanceLibraryTrees(swingWindow) {
 		Array.prototype.forEach.call(
 			swingWindow.querySelectorAll("div[id^='Tracker_TreeUI_'][id$='div']"),
@@ -1299,9 +1431,16 @@
 								inlinePixels(label, "width", 1),
 								inlinePixels(label, "height", 16)
 							].join(","));
+							label.removeAttribute("data-tracker-node-target");
+							label.removeAttribute("data-tracker-node-open");
 						}
-						var bounds = (label.getAttribute("data-tracker-logical-tree-bounds") || "0,0,1,16")
-							.split(",").map(parseFloat);
+						/* Resolving the Java node costs a tree lookup, so cache it against
+						 * the row geometry SwingJS rebuilds it with. */
+						if (!label.hasAttribute("data-tracker-node-target")) {
+							label.setAttribute("data-tracker-node-target", libraryRowTarget(label));
+							label.setAttribute("data-tracker-node-open",
+								String(libraryRowOpensInTracker(label)));
+						}
 					}
 				);
 				labels.sort(function (a, b) {
@@ -1316,8 +1455,17 @@
 					var textNode = label.querySelector("[id$='_txt']");
 					var text = textNode ? textNode.textContent.replace(/\u00a0/g, " ").trim() : "";
 					var isImplementationRoot = /^::\s*indexTRZdl\.php$/i.test(text);
-					var isFile = /\.(?:trz|trk|mp4|m4v|mov|avi|webm|zip|xml|html?|php)$/i.test(text);
-					var isOpenable = /\.(?:trz|trk)$/i.test(text);
+					/* SwingJS separates the words of a tree label with &nbsp;, which
+					 * makes the whole title one unbreakable token: no wrapping rule can
+					 * split it at a space, so a long name always breaks mid-word. Give
+					 * the rendered row ordinary spaces to wrap between. The guard keeps
+					 * this to one write per rebuilt row. */
+					if (textNode && textNode.textContent.indexOf("\xa0") > -1) {
+						textNode.textContent = textNode.textContent.replace(/\xa0/g, " ");
+					}
+					var isOpenable = libraryRowIsOpenable(label);
+					var isFile = isOpenable ||
+						/\.(?:trz|trk|mp4|m4v|mov|avi|webm|zip|xml|html?|php)$/i.test(text);
 					var nextLabel = labels[labelIndex + 1];
 					var nextBounds = nextLabel ?
 						(nextLabel.getAttribute("data-tracker-logical-tree-bounds") || "0,0,1,16").split(",").map(parseFloat) : null;
@@ -1383,9 +1531,9 @@
 			readout.setAttribute("title", path);
 		}
 		var openSelected = swingWindow.querySelector(".tracker-library-open-selected");
-		var recordName = libraryLabelText(label);
+		var recordName = libraryRowRecordName(label);
 		var openable = label.classList.contains("tracker-library-tree-file") &&
-			/\.(?:trz|trk)$/i.test(recordName);
+			libraryRowIsOpenable(label);
 		if (openSelected) {
 			openSelected.disabled = !openable;
 			openSelected.setAttribute("aria-label",
@@ -1396,8 +1544,8 @@
 
 	function openLibraryLabelRecord(label) {
 		var swingWindow = label && label.closest(".tracker-mobile-library-window");
-		var recordName = libraryLabelText(label);
-		if (!swingWindow || !/\.(?:trz|trk)$/i.test(recordName) ||
+		var recordName = libraryRowRecordName(label);
+		if (!swingWindow || !libraryRowIsOpenable(label) ||
 				swingWindow._trackerLibraryOpeningRecord) return false;
 		swingWindow._trackerLibraryOpeningRecord = recordName;
 		swingWindow.classList.add("tracker-library-opening");
@@ -1856,11 +2004,6 @@
 			style.display !== "none" && style.visibility !== "hidden";
 	}
 
-	function libraryRecordName(label) {
-		var text = label && label.querySelector("[id$='_txt']");
-		return (text ? text.textContent : "").replace(/\u00a0/g, " ").trim();
-	}
-
 	function urlFileName(value) {
 		var clean = (value || "").split(/[?#]/, 1)[0];
 		try {
@@ -1893,8 +2036,8 @@
 		var label = target && typeof target.closest === "function" ?
 			target.closest("label[id^='Tracker_LabelUI_']") : null;
 		if (!label || !label.closest("div[id^='Tracker_TreeUI_']")) return;
-		var recordName = libraryRecordName(label);
-		if (!/\.trz$/i.test(recordName)) return;
+		var recordName = libraryRowRecordName(label);
+		if (!libraryRowIsOpenable(label)) return;
 
 		/* SwingJS's native double-click tries to reopen the cached /TEMP path.
 		 * Suppress it and reuse the Library Browser's target LOAD command. */

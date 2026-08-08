@@ -38,6 +38,12 @@
       exception.
 - [ ] Double-clicking `BallTossOut.trz` invokes the same load workflow as the
       Library Browser Open button.
+- [ ] In a collection that names resources after the activity rather than the
+      file, such as `ComPADRE Library` or `Tracker Home Library`, a resource
+      row (for example `2D Collisions in a CM Reference Frame > Inelastic
+      Collision`) shows the file styling, enables `Open selected`, and loads on
+      a single tap. A non-Tracker resource such as a `.pdf` preprint must stay
+      unopenable.
 - [ ] Double-clicking `GB Droplookang.trz` loads the project without attempting
       to open a literal `/TEMP/.../GB%20Droplookang.trz` filename.
 - [ ] The downloaded project reopens with video metadata, coordinates, and
@@ -62,6 +68,12 @@
       Shared Library entries, and selecting a collection displays its contents.
 - [ ] `Collections > Shared Library` displays an unclipped child menu, and a
       child such as `Singapore Tracker Collection` can be selected and loaded.
+- [ ] With a `Collections` child sheet already open, the other two libraries
+      remain selectable: tapping `Tracker Home Library` or `Shared Library`
+      swaps the sheet instead of dimming the window and closing it.
+- [ ] On a tablet or desktop width the child sheet opens beside the tapped row
+      rather than as a full-width banner at the top of the screen, and its
+      heading reads `ComPADRE Library`, not `.ComPADRE Library`.
 - [ ] Long Shared Library choices such as `High Point University Collection`
       are fully readable rather than cut off by the child-menu edge.
 - [ ] On a compact/coarse touch viewport, every SwingJS combo box opens the

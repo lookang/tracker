@@ -369,6 +369,14 @@ div[id^="Tracker_ToolBarUI_"][id$="div"]::-webkit-scrollbar,
 	touch-action: manipulation;
 }
 
+/* SwingJS stacks its popups at 12002, below the sheet backdrop. The popup a
+ * sheet was opened from must stay above the backdrop, otherwise its other rows
+ * (a second collection, say) are dimmed but unreachable: the tap lands on the
+ * backdrop and simply closes the sheet. */
+.swingjsPopupMenu.tracker-popup-above-sheet {
+	z-index: 19995 !important;
+}
+
 .tracker-mobile-submenu-sheet {
 	position: fixed;
 	left: max(8px, env(safe-area-inset-left));
@@ -859,7 +867,7 @@ div[id^="Tracker_ToolBarUI_"][id$="div"]::-webkit-scrollbar,
 .tracker-mobile-library-window .tracker-library-document h1 {
 	font-size: clamp(22px, 7vw, 32px) !important;
 	line-height: 1.15 !important;
-	overflow-wrap: anywhere;
+	overflow-wrap: break-word;
 }
 
 /* Library tree rows are 16px high in the desktop Swing model. Space them as
@@ -962,7 +970,10 @@ div[id^="Tracker_ToolBarUI_"][id$="div"]::-webkit-scrollbar,
 	-webkit-line-clamp: 2;
 	transform: none !important;
 	white-space: normal !important;
-	overflow-wrap: anywhere;
+	/* `anywhere` splits an ordinary title mid-word ("Solar Rotat / ion Rate").
+	 * `break-word` wraps at spaces first and only breaks a word that cannot fit
+	 * on a line by itself, which still contains a long unbroken filename. */
+	overflow-wrap: break-word;
 	font-size: 16px !important;
 	line-height: 20px !important;
 	background: transparent !important;
