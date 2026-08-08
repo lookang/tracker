@@ -58,6 +58,13 @@ body {
 	outline-offset: 1px;
 }
 
+.tracker-inline-credit .tracker-credit-guide::before {
+	content: "\00b7";
+	margin: 0 5px;
+	color: #627d98;
+	font-weight: 400;
+}
+
 @media (max-width: 760px) {
 	.tracker-main-title-with-credit {
 		gap: 4px;
@@ -66,6 +73,25 @@ body {
 
 	.tracker-inline-credit {
 		font-size: 10px;
+	}
+
+	.tracker-inline-credit .tracker-credit-guide::before {
+		margin: 0 4px;
+	}
+}
+
+/* The credit carries attribution and two navigation links, which is wider than
+ * a phone title bar. Let the strip scroll rather than clipping a link out of
+ * reach, and keep the scrollbar itself out of a 20px row. */
+@media (max-width: 560px) {
+	.tracker-main-title-with-credit {
+		overflow-x: auto;
+		scrollbar-width: none;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.tracker-main-title-with-credit::-webkit-scrollbar {
+		display: none;
 	}
 }
 

@@ -31,13 +31,23 @@
 		if (loading) loading.textContent = message;
 	}
 
-	function attributionLink(text, href) {
+	function attributionLink(text, href, className) {
 		var link = document.createElement("a");
 		link.textContent = text;
 		link.href = href;
 		link.target = "_blank";
 		link.rel = "noopener noreferrer";
+		if (className) link.className = className;
 		return link;
+	}
+
+	/* A plain .md URL is cached hard by browsers, so a change log can still read
+	 * as stale days after it was deployed. Version the link the same way the
+	 * launcher versions its own assets. */
+	function changeLogHref() {
+		var build = global.TrackerStudentMobileBuild;
+		return "mobile-enhancements/CHANGELOG.md" +
+			(build ? "?v=" + encodeURIComponent(build) : "");
 	}
 
 	function ensureInlineCredit() {
@@ -70,6 +80,12 @@
 			credit.appendChild(document.createTextNode(", based on the "));
 			credit.appendChild(attributionLink(
 				"Tracker Project", "https://opensourcephysics.github.io/tracker-website/"));
+			/* The launcher, the pedagogy page and the change log were unlinked, so
+			 * the supporting material was hard to reach from inside the app. */
+			credit.appendChild(attributionLink("Read more",
+				"TrackerStudentMobilePedagogy.html#mobile-mission", "tracker-credit-guide"));
+			credit.appendChild(attributionLink("What's new",
+				changeLogHref(), "tracker-credit-guide"));
 			["pointerdown", "mousedown", "touchstart", "click"].forEach(function (eventName) {
 				credit.addEventListener(eventName, function (event) {
 					event.stopPropagation();
