@@ -8,6 +8,7 @@
 	var popupWatching = false;
 	var popupPoller = null;
 	var libraryDoubleClickBound = false;
+	var desktopDocumentBridgeBound = false;
 	var libraryTreeBridgeBound = false;
 	var windowLayoutQueued = false;
 	var touchMouseBridgeBound = false;
@@ -2054,6 +2055,90 @@
 		document.addEventListener("dblclick", handleLibraryRecordDoubleClick, true);
 	}
 
+	function supplementalMimeType(name) {
+		var match = String(name).split(/[?#]/, 1)[0].match(/\.([a-z0-9]+)$/i);
+		switch (match ? match[1].toLowerCase() : "") {
+			case "pdf": return "application/pdf";
+			case "htm":
+			case "html": return "text/html";
+			case "txt": return "text/plain";
+			case "csv": return "text/csv";
+			case "png": return "image/png";
+			case "jpg":
+			case "jpeg": return "image/jpeg";
+			case "gif": return "image/gif";
+			case "svg": return "image/svg+xml";
+			case "mp4": return "video/mp4";
+			default: return "application/octet-stream";
+		}
+	}
+
+	function zipEntryObjectURL(path) {
+		var loader = global.org && org.opensourcephysics && org.opensourcephysics.tools &&
+			org.opensourcephysics.tools.ResourceLoader;
+		if (!loader || typeof loader.getZipEntryBytes$S$java_io_File !== "function") return null;
+		var bytes = null;
+		try {
+			bytes = loader.getZipEntryBytes$S$java_io_File(path, null);
+		} catch (error) {
+			return null;
+		}
+		if (!bytes || !bytes.length) return null;
+		var clean = path.split(/[?#]/, 1)[0];
+		var name = clean.substring(clean.lastIndexOf("/") + 1) || "document";
+		return {
+			url: global.URL.createObjectURL(
+				new Blob([new Uint8Array(bytes)], { type: supplementalMimeType(name) })),
+			name: name
+		};
+	}
+
+	/* Tracker records a project's support document as "<zip url>!/<entry>". The
+	 * desktop application unzips to a real temp file and hands the operating
+	 * system a path, but the browser build keeps the zip-internal form, which no
+	 * browser can navigate to, so opening a support PDF did nothing. Those bytes
+	 * are already cached from loading the project, so serve them from a blob. */
+	function bindDesktopDocumentBridge() {
+		if (desktopDocumentBridgeBound) return;
+		var desktop = global.org && org.opensourcephysics && org.opensourcephysics.desktop &&
+			org.opensourcephysics.desktop.OSPDesktop;
+		if (!desktop || typeof desktop.displayURL$S !== "function") return;
+		desktopDocumentBridgeBound = true;
+		var nativeDisplayURL = desktop.displayURL$S;
+		desktop.displayURL$S = function (url) {
+			var path = String(url == null ? "" : url);
+			if (path.indexOf("!/") === -1) return nativeDisplayURL.apply(this, arguments);
+			var entry = zipEntryObjectURL(path);
+			if (!entry) return nativeDisplayURL.apply(this, arguments);
+			var opened = null;
+			try {
+				opened = global.open(entry.url, "_blank");
+			} catch (error) {
+				opened = null;
+			}
+			/* Tracker also opens support documents by itself as a project finishes
+			 * loading, with no gesture behind it, and a browser rightly blocks that
+			 * window. Only fall back to a download when the student asked for the
+			 * file, never behind their back. */
+			if (!opened) {
+				var activation = global.navigator && global.navigator.userActivation;
+				if (!activation || !activation.isActive) {
+					global.URL.revokeObjectURL(entry.url);
+					return false;
+				}
+				var link = document.createElement("a");
+				link.href = entry.url;
+				link.download = entry.name;
+				link.rel = "noopener";
+				document.body.appendChild(link);
+				link.click();
+				link.remove();
+			}
+			global.setTimeout(function () { global.URL.revokeObjectURL(entry.url); }, 60000);
+			return true;
+		};
+	}
+
 	function watchPopupMenus() {
 		if (popupWatching) return;
 		popupWatching = true;
@@ -2087,6 +2172,8 @@
 				enhanceMainToolbar();
 				markTouchInteractionSurfaces();
 				suppressNativeSwingMenus();
+				/* SwingJS loads OSPDesktop lazily, so keep trying until it exists. */
+				bindDesktopDocumentBridge();
 				bindSubmenuTriggers();
 				queueWindowLayout();
 				if (document.querySelector(".swingjsPopupMenu")) queuePopupClamp();

@@ -48,6 +48,11 @@
       to open a literal `/TEMP/.../GB%20Droplookang.trz` filename.
 - [ ] The downloaded project reopens with video metadata, coordinates, and
       point-mass data intact.
+- [ ] Open a project that carries a support document, such as ComPADRE's
+      `Astronomy > The Sun > Measurement of the Solar Rotation Rate`. Loading it
+      must not announce that a supplementary resource cannot be opened, and
+      Tracker's supplemental-documents toolbar button must list
+      `tracker_solar_rotation_instructions.pdf` and display it when tapped.
 
 ## Responsive behavior
 
