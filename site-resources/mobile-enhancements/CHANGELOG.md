@@ -97,12 +97,24 @@ releases.
 | `20260730-sm18` | Deterministic submenu tap routing | Made activation through the full-row submenu tap overlay always open the touch sheet, even when a tablet browser reports the release as a mouse-compatible event. Desktop hover remains native, while an intentional click or tap gets the same Back/Close sheet on every viewport width. |
 | `20260730-sm19` | Stable tablet submenu release | Gave each rebuilt full-row tap target its own release closure and removed duplicate global pointerdown handling for those overlays. This prevents a tablet tap from hiding the SwingJS menu without opening the touch sheet. |
 | `20260730-sm20` | Android video gestures and long press | Restored the lazy-loaded SwingJS `JSMouse2` and `javajs.util.V3` classes needed by two-finger video gestures. Long press now resolves the current painted canvas under the finger before sending Tracker's native right-click sequence, so a SwingJS repaint cannot strand the hold on a detached node. |
+
+### 2026-08-08
+
+Reported by Wolfgang Christian against `20260730-sm20`, then extended by
+issues found while reproducing that report. Every build below was exercised
+against the live deployment.
+
+| Build | Evidence | Changes and outcome |
+| --- | --- | --- |
 | `20260808-sm21` | Selectable `Collections` entries | Reported by Wolfgang Christian against `20260730-sm20`: opening `Collections` and choosing a library dimmed the whole window and left the three libraries unselectable, so only `Close` responded. The sheet backdrop sits at `z-index: 19990` and SwingJS stacks its popup at `12002`, so every remaining row was covered by the backdrop and each tap only dismissed the sheet. The originating popup is now lifted above the backdrop while its sheet is open, the sheet is anchored beside the tapped row on tablet and desktop widths instead of appearing as a full-width banner at the top of the screen, and the sheet heading reads the menu text node so it no longer renders as `.ComPADRE Library`. |
 | `20260808-sm21` | Openable title-named resources | Found while reproducing the report above: a tree row was classified from its own text, so only a node literally named `something.trz` counted as an openable Tracker file. ComPADRE and Tracker Home name every resource after the activity (`Inelastic Collision`), which left each one styled as a folder, kept `Open selected` disabled, and made both one tap and double-click select the row without ever loading it; only collections such as `Singapore Tracker Collection`, whose nodes carry filenames, worked. A row now resolves its Java `LibraryTreeNode` through the same logical row index the tap bridge dispatches against and uses that node's target, so `Inelastic Collision` opens `collision_2D_inelastic.trz`. The node name must still match the row text, and a non-Tracker target such as a `.pdf` preprint stays unopenable. |
 | `20260808-sm22` | Openable ComPADRE resources | Reported by lookang against `20260808-sm21`: `Astronomy > The Sun > Measurement of the Solar Rotation Rate` still had no `Open` badge and would not launch. `sm21` recognised a Tracker resource by a `.trz` or `.trk` extension on the node's target, which only holds for a collection served from static files such as Tracker Home. ComPADRE serves every resource through a `ServeFile.cfm` endpoint, so no extension test can match one, and an unexpanded remote sub-collection compounds this by reporting itself as a leaf that carries a target. A row now asks the Java record for its type, which is what Tracker itself dispatches on: `Tracker` is openable, while `Collection` and `HTML` are not. The extension test remains as a fallback for collections that publish no type. |
+| `20260808-sm23` | Initial row wrapping correction | Changed the tree row and the details-pane heading from `overflow-wrap: anywhere` to `break-word`. Live testing showed the row still split mid-word: the computed style confirmed the rule was applied, but SwingJS joins the words of a label with `&nbsp;`, leaving a title as one unbreakable token that no wrapping rule can split at a space. Superseded by `sm24`. |
 | `20260808-sm24` | Word-aware library row wrapping | A long resource title split mid-word in a narrow tree pane, rendering `Measurement of the Solar Rotat / ion Rate`. Two causes: the row and the details-pane heading used `overflow-wrap: anywhere`, which breaks inside a word whenever it helps rather than only when a word cannot fit; and SwingJS separates the words of a tree label with `&nbsp;`, making the whole title a single unbreakable token that no wrapping rule can split at a space. Both rules now use `break-word`, and an enhanced row is given ordinary spaces to wrap between. A long unbroken filename is still contained rather than overflowing. |
 | `20260808-sm25` | Openable project support documents | Reported by lookang against `20260808-sm24`: opening `Measurement of the Solar Rotation Rate` announced that a supplementary resource could not be opened, and its instruction PDF was unreachable. Tracker records a project's support document as `<zip url>!/<entry>`. The desktop application sets `OSPRuntime.unzipFiles`, extracts to a real temp file and hands the operating system a path, but the browser build leaves the zip-internal form, which no browser can navigate to, so `OSPDesktop.displayURL` reported success while nothing opened. The entry's bytes are already cached from loading the project, so a zip-internal path is now served from a blob instead. Tracker's own supplemental-documents toolbar button therefore opens the PDF. Tracker also tries to open support documents by itself as a project loads, with no gesture behind it; a browser blocks that window, and the fallback download is deliberately limited to a request the student actually made. |
+| `20260808-sm26` | Initial cross-link attempt | Added the `Read more` and `What's new` links to the title credit. Measuring the rendered strip showed the credit had grown wider than a phone title bar, which would clip a link out of reach on a narrow screen. Superseded by `sm27`. |
 | `20260808-sm27` | Linked pedagogy page and change log | The launcher, the pedagogy page and the change log were published as unconnected pages, so supporting material was hard to reach from inside the app. The title credit now carries `Read more`, which opens the pedagogy page at its mobile mission, and `What's new`, which opens this change log. A plain `.md` URL is cached hard by browsers, which made a freshly deployed change log still read as stale, so that link carries the same build cache-buster the launcher uses for its own assets. |
+| `20260808-sm28` | Change log correction | The 2026-08-08 entries had been appended to the `2026-07-29` table, so a reader scanning by date found the day's work filed under the wrong heading. They now sit under their own dated section. The two superseded builds `sm23` and `sm26` were missing and have been restored with their limitations, as this log requires. `Current release fingerprint` still described `20260722-115` and now records hashes read back from the live deployment, including a note on the one local asset that does not match the published copy. No launcher behavior changed in this build. |
 
 ## Current mobile design decisions
 
@@ -159,17 +171,27 @@ their native prerequisite is satisfied.
 
 Current public URL:
 
-`https://iwant2study.org/tracker/TrackerStudentMobile.html?v=20260722-115`
+`https://iwant2study.org/tracker/TrackerStudentMobile.html?v=20260808-sm28`
 
-SHA-256 values for the verified `20260722-115` deployment:
+SHA-256 values read back from the live `20260808-sm28` deployment:
 
 | Asset | SHA-256 |
 | --- | --- |
-| `TrackerStudentMobile.html` | `6dce12372aac6c74de58fc6067fddd09c0f435b2c216497322ce856ab18dbdb4` |
-| `tracker-student-mobile.js` | `4c6ba247e729cb56840d9a3a368f553ecbd3543a40ae8b6e818af0facaf28332` |
-| `tracker-student-mobile.css` | `c9bc8b54d9c313b26801d9aaf632a55792d9e1ce7ad70590585a90a4828ea9e3` |
+| `TrackerStudentMobile.html` | `9b36bfb717862e65b8db2be47d685b4cd3644ee76a183e491bfd4885a802ad9f` |
+| `tracker-student-mobile.js` | `fa392f43738f9e2bb57c6888d1adb487255c5b29f3b2a8edc6a18e19269c124c` |
+| `tracker-student-mobile.css` | `3e124c78cecd39d933a1768f789164b540267d9eb6b45ff77f50161514fd5f29` |
 | `swingjs2-tracker-mobile.js` | `b39bc8a2891e2883e0ffcd0be8dc0fba87fa048b3e8de806ec69898d4dca631c` |
 | `core_tracker.z.js` | `69dd87c587d9a34dc323f8afc5fab4afa6da68d2927a022dea860a2cb5d93feb` |
+
+The launcher HTML, JavaScript and CSS match the local source byte for byte.
+`swingjs2-tracker-mobile.js` and `core_tracker.z.js` are unchanged since
+`20260722-115` and were not re-uploaded.
+
+Known discrepancy: the local `swingjs2-tracker-mobile.js` is 660622 bytes with
+SHA-256 `2fa87070d530d4af9a1825e0a9a441f5996b6c046d5887a5cf3b0a31788325d7`,
+while the deployed file is 660412 bytes. The deployed copy is the one every
+build in this log was verified against; the local copy has never been
+published. This predates the 2026-08-08 work and is not reconciled here.
 
 ## Logging future versions
 
