@@ -9,10 +9,13 @@ Active source branch: `lookang/tracker:StudentMobile`, based directly on
 `OpenSourcePhysics/tracker:SwingJS` and its Tracker 6.3.x development line.
 
 Current verified application:
-<https://iwant2study.org/tracker/TrackerStudentMobile.html?v=20260809-sm29>
+<https://iwant2study.org/tracker/TrackerStudentMobile.html?v=20260809-sm30>
 
 Pedagogy and project mission:
-<https://iwant2study.org/tracker/TrackerStudentMobilePedagogy.html?v=20260721-doc2#mobile-mission>
+<https://iwant2study.org/tracker/TrackerStudentMobilePedagogy.html?v=20260809-sm30#mobile-mission>
+
+Student Mobile source branch:
+<https://github.com/lookang/tracker/tree/StudentMobile>
 
 ## Included
 

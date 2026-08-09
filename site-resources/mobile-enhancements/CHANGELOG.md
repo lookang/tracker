@@ -121,6 +121,7 @@ against the live deployment.
 | Build | Evidence | Changes and outcome |
 | --- | --- | --- |
 | `20260809-sm29` | Single live marker-output group | A user reported blank `x`, `y`, `r` and `theta` fields while the real values appeared in a second group. Reproduction required a wide landscape workspace: after a project load, the mobile toolbar enhancer could cache the rebuilt `TTrackBar` (the selected track/point bar) while Tracker's actual `TToolBar` was briefly unavailable. Repositioning `TTrackBar` children moved the live input DOM away from SwingJS's painted field backgrounds, so the backgrounds looked like empty duplicate outputs. The enhancer now selects the application toolbar by its `org.opensourcephysics.cabrillo.tracker.TToolBar` identity and explicitly excludes `TTrackBar` from fallback selection. Marker selection and drag therefore leave one value group, and `x`, `y`, `r` and `theta` update in place. |
+| `20260809-sm30` | App, introduction and source interlinked | The three primary project resources are now mutually discoverable. Tracker Mobile's inline title credit includes a `Source code` link to `lookang/tracker:StudentMobile`; the pedagogy page links both the live app and the GitHub branch in its hero, closing call-to-action and footer; and the repository README lists the live app and introduction alongside the source branch. |
 
 ## Current mobile design decisions
 
@@ -177,14 +178,14 @@ their native prerequisite is satisfied.
 
 Current public URL:
 
-`https://iwant2study.org/tracker/TrackerStudentMobile.html?v=20260809-sm29`
+`https://iwant2study.org/tracker/TrackerStudentMobile.html?v=20260809-sm30`
 
-SHA-256 values read back from the live `20260809-sm29` deployment:
+SHA-256 values read back from the live `20260809-sm30` deployment:
 
 | Asset | SHA-256 |
 | --- | --- |
-| `TrackerStudentMobile.html` | `325fda3506228f7ef3f43291039d84733a3786db3d1ebd2b72b3b8314469d70c` |
-| `tracker-student-mobile.js` | `707b5277af5ee36ead30212961d94f07e6348102cb21a802e8a373fe9cf1d988` |
+| `TrackerStudentMobile.html` | `2ab0db0df193fa982017a3626c53a9de05a7a915749fc037653daae809e0c88b` |
+| `tracker-student-mobile.js` | `7b609e01fcd1dae2f6160bf07b56c58195903df9e168d1cbeb0ceb193dcc4393` |
 | `tracker-student-mobile.css` | `3e124c78cecd39d933a1768f789164b540267d9eb6b45ff77f50161514fd5f29` |
 | `swingjs2-tracker-mobile.js` | `b39bc8a2891e2883e0ffcd0be8dc0fba87fa048b3e8de806ec69898d4dca631c` |
 | `core_tracker.z.js` | `69dd87c587d9a34dc323f8afc5fab4afa6da68d2927a022dea860a2cb5d93feb` |

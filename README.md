@@ -27,8 +27,9 @@ OpenSourcePhysics unless the Tracker maintainers request a focused contribution.
 
 | Resource | Link |
 | --- | --- |
-| Tracker Student Mobile, current verified build | [Open build 20260809-sm29](https://iwant2study.org/tracker/TrackerStudentMobile.html?v=20260809-sm29) |
-| Why mobile Tracker matters for learning | [From Motion to Meaning](https://iwant2study.org/tracker/TrackerStudentMobilePedagogy.html?v=20260721-doc2#mobile-mission) |
+| Tracker Student Mobile, current verified build | [Open build 20260809-sm30](https://iwant2study.org/tracker/TrackerStudentMobile.html?v=20260809-sm30) |
+| Why mobile Tracker matters for learning | [From Motion to Meaning](https://iwant2study.org/tracker/TrackerStudentMobilePedagogy.html?v=20260809-sm30#mobile-mission) |
+| Tracker Student Mobile source | [lookang/tracker:StudentMobile](https://github.com/lookang/tracker/tree/StudentMobile) |
 | Mobile release history and verification evidence | [CHANGELOG.md](site-resources/mobile-enhancements/CHANGELOG.md) |
 | Full mobile acceptance checklist | [TESTING.md](site-resources/mobile-enhancements/TESTING.md) |
 | Original Tracker website | [opensourcephysics.github.io/tracker-website](https://opensourcephysics.github.io/tracker-website/) |
