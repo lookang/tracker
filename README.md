@@ -25,10 +25,16 @@ OpenSourcePhysics unless the Tracker maintainers request a focused contribution.
 
 ## Try it
 
+<p align="center">
+  <a href="https://youtu.be/6G6A_feou5Q"><img src="https://img.youtube.com/vi/6G6A_feou5Q/maxresdefault.jpg" width="720" alt="Watch the Tracker Student Mobile teacher tutorial on YouTube"></a><br>
+  <strong><a href="https://youtu.be/6G6A_feou5Q">Watch: Tracker Mobile for students and teachers</a></strong>
+</p>
+
 | Resource | Link |
 | --- | --- |
-| Tracker Student Mobile, current verified build | [Open build 20260809-sm31](https://iwant2study.org/tracker/TrackerStudentMobile.html?v=20260809-sm31) |
-| Why mobile Tracker matters for learning | [From Motion to Meaning](https://iwant2study.org/tracker/TrackerStudentMobilePedagogy.html?v=20260809-sm31#mobile-mission) |
+| Teacher video tutorial | [▶ Watch Tracker Mobile in a classroom workflow](https://youtu.be/6G6A_feou5Q) |
+| Tracker Student Mobile, current verified build | [Open build 20260809-sm32](https://iwant2study.org/tracker/TrackerStudentMobile.html?v=20260809-sm32) |
+| Why mobile Tracker matters for learning | [From Motion to Meaning](https://iwant2study.org/tracker/TrackerStudentMobilePedagogy.html?v=20260809-sm32#mobile-mission) |
 | Tracker Student Mobile source | [lookang/tracker:StudentMobile](https://github.com/lookang/tracker/tree/StudentMobile) |
 | Mobile release history and verification evidence | [CHANGELOG.md](site-resources/mobile-enhancements/CHANGELOG.md) |
 | Full mobile acceptance checklist | [TESTING.md](site-resources/mobile-enhancements/TESTING.md) |

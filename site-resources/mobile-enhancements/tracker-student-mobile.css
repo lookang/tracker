@@ -65,6 +65,33 @@ body {
 	font-weight: 400;
 }
 
+.tracker-inline-credit .tracker-credit-video {
+	display: inline-flex;
+	min-height: 18px;
+	align-items: center;
+	margin-left: 5px;
+	padding: 0 7px;
+	border-radius: 999px;
+	background: #d92d20;
+	color: #fff;
+	font-weight: 800;
+	line-height: 18px;
+	text-decoration: none;
+	box-shadow: 0 1px 2px rgba(95, 20, 16, .22);
+}
+
+.tracker-inline-credit .tracker-credit-video::before {
+	content: "\25b6";
+	margin: 0 4px 0 0;
+	color: #fff;
+	font-size: 8px;
+}
+
+.tracker-inline-credit .tracker-credit-video:hover,
+.tracker-inline-credit .tracker-credit-video:focus-visible {
+	background: #b42318;
+}
+
 @media (max-width: 760px) {
 	.tracker-main-title-with-credit {
 		gap: 4px;
@@ -75,12 +102,17 @@ body {
 		font-size: 10px;
 	}
 
-	.tracker-inline-credit .tracker-credit-guide::before {
+	.tracker-inline-credit .tracker-credit-guide:not(.tracker-credit-video)::before {
 		margin: 0 4px;
+	}
+
+	.tracker-inline-credit .tracker-credit-video {
+		margin-left: 4px;
+		padding-inline: 6px;
 	}
 }
 
-/* The credit carries attribution and two navigation links, which is wider than
+/* The credit carries attribution and supporting navigation links, which is wider than
  * a phone title bar. Let the strip scroll rather than clipping a link out of
  * reach, and keep the scrollbar itself out of a 20px row. */
 @media (max-width: 560px) {

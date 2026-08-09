@@ -83,11 +83,13 @@
 			/* The launcher, the pedagogy page and the change log were unlinked, so
 			 * the supporting material was hard to reach from inside the app. */
 			credit.appendChild(attributionLink("Read more",
-				"TrackerStudentMobilePedagogy.html?v=20260809-sm31#mobile-mission", "tracker-credit-guide"));
+				"TrackerStudentMobilePedagogy.html?v=20260809-sm32#mobile-mission", "tracker-credit-guide"));
 			credit.appendChild(attributionLink("Source code",
 				"https://github.com/lookang/tracker/tree/StudentMobile", "tracker-credit-guide"));
 			credit.appendChild(attributionLink("What's new",
 				changeLogHref(), "tracker-credit-guide"));
+			credit.appendChild(attributionLink("Tutorial",
+				"https://youtu.be/6G6A_feou5Q", "tracker-credit-guide tracker-credit-video"));
 			["pointerdown", "mousedown", "touchstart", "click"].forEach(function (eventName) {
 				credit.addEventListener(eventName, function (event) {
 					event.stopPropagation();
