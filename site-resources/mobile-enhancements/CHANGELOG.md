@@ -116,6 +116,12 @@ against the live deployment.
 | `20260808-sm27` | Linked pedagogy page and change log | The launcher, the pedagogy page and the change log were published as unconnected pages, so supporting material was hard to reach from inside the app. The title credit now carries `Read more`, which opens the pedagogy page at its mobile mission, and `What's new`, which opens this change log. A plain `.md` URL is cached hard by browsers, which made a freshly deployed change log still read as stale, so that link carries the same build cache-buster the launcher uses for its own assets. |
 | `20260808-sm28` | Change log correction | The 2026-08-08 entries had been appended to the `2026-07-29` table, so a reader scanning by date found the day's work filed under the wrong heading. They now sit under their own dated section. The two superseded builds `sm23` and `sm26` were missing and have been restored with their limitations, as this log requires. `Current release fingerprint` still described `20260722-115` and now records hashes read back from the live deployment, including a note on the one local asset that does not match the published copy. No launcher behavior changed in this build. |
 
+### 2026-08-09
+
+| Build | Evidence | Changes and outcome |
+| --- | --- | --- |
+| `20260809-sm29` | Single live marker-output group | A user reported blank `x`, `y`, `r` and `theta` fields while the real values appeared in a second group. Reproduction required a wide landscape workspace: after a project load, the mobile toolbar enhancer could cache the rebuilt `TTrackBar` (the selected track/point bar) while Tracker's actual `TToolBar` was briefly unavailable. Repositioning `TTrackBar` children moved the live input DOM away from SwingJS's painted field backgrounds, so the backgrounds looked like empty duplicate outputs. The enhancer now selects the application toolbar by its `org.opensourcephysics.cabrillo.tracker.TToolBar` identity and explicitly excludes `TTrackBar` from fallback selection. Marker selection and drag therefore leave one value group, and `x`, `y`, `r` and `theta` update in place. |
+
 ## Current mobile design decisions
 
 ### Kept
@@ -171,14 +177,14 @@ their native prerequisite is satisfied.
 
 Current public URL:
 
-`https://iwant2study.org/tracker/TrackerStudentMobile.html?v=20260808-sm28`
+`https://iwant2study.org/tracker/TrackerStudentMobile.html?v=20260809-sm29`
 
-SHA-256 values read back from the live `20260808-sm28` deployment:
+SHA-256 values read back from the live `20260809-sm29` deployment:
 
 | Asset | SHA-256 |
 | --- | --- |
-| `TrackerStudentMobile.html` | `9b36bfb717862e65b8db2be47d685b4cd3644ee76a183e491bfd4885a802ad9f` |
-| `tracker-student-mobile.js` | `fa392f43738f9e2bb57c6888d1adb487255c5b29f3b2a8edc6a18e19269c124c` |
+| `TrackerStudentMobile.html` | `325fda3506228f7ef3f43291039d84733a3786db3d1ebd2b72b3b8314469d70c` |
+| `tracker-student-mobile.js` | `707b5277af5ee36ead30212961d94f07e6348102cb21a802e8a373fe9cf1d988` |
 | `tracker-student-mobile.css` | `3e124c78cecd39d933a1768f789164b540267d9eb6b45ff77f50161514fd5f29` |
 | `swingjs2-tracker-mobile.js` | `b39bc8a2891e2883e0ffcd0be8dc0fba87fa048b3e8de806ec69898d4dca631c` |
 | `core_tracker.z.js` | `69dd87c587d9a34dc323f8afc5fab4afa6da68d2927a022dea860a2cb5d93feb` |

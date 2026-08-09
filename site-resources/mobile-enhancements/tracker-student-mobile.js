@@ -581,13 +581,30 @@
 	}
 
 	function mainToolbar() {
-		if (mainToolbarShell && mainToolbarShell.isConnected) return mainToolbarShell;
+		/* TTrackBar is rebuilt when a project/track/point is selected. During that
+		 * rebuild it can briefly be the first wide toolbar in the document. Treating
+		 * it as the application toolbar moves its NumberField DOM peers away from
+		 * SwingJS's painted field backgrounds, leaving a stale-looking blank x/y/r/
+		 * theta group beside the live values. Prefer the stable TToolBar identity and
+		 * discard an earlier fallback as soon as the real application toolbar exists. */
+		var preferred = document.querySelector(
+			"div[id^='Tracker_ToolBarUI_'][id$='div'][name='org.opensourcephysics.cabrillo.tracker.TToolBar']"
+		);
+		if (preferred && preferred.isConnected) {
+			mainToolbarShell = preferred;
+			return mainToolbarShell;
+		}
+		if (mainToolbarShell && mainToolbarShell.isConnected &&
+			mainToolbarShell.getAttribute("name") !== "org.opensourcephysics.cabrillo.tracker.TTrackBar") {
+			return mainToolbarShell;
+		}
 		mainToolbarShell = null;
 		var candidates = Array.prototype.filter.call(
 			document.querySelectorAll("div[id^='Tracker_ToolBarUI_'][id$='div']"),
 			function (element) {
 				var rect = element.getBoundingClientRect();
-				return rect.width > 300 && rect.height > 20 && rect.top < 150;
+				return element.getAttribute("name") !== "org.opensourcephysics.cabrillo.tracker.TTrackBar" &&
+					rect.width > 300 && rect.height > 20 && rect.top < 150;
 			}
 		);
 		candidates.sort(function (a, b) {
