@@ -189,17 +189,136 @@
 		}
 
 		.hero .button { min-width: 290px; }
+		.hero .button-row { flex-wrap: wrap; gap: 8px 18px; }
 		.hero .text-link { white-space: nowrap; }
 
 		.hero-visual {
 			margin: 0;
 		}
 
-		.hero-visual img {
+		.hero-carousel {
+			position: relative;
+		}
+
+		.hero-carousel-frame {
+			position: relative;
+			aspect-ratio: 16 / 9;
+			overflow: hidden;
+			border: 1px solid rgba(13, 50, 84, .18);
+			border-radius: 22px;
+			background: #e9f0f7;
+			box-shadow: 0 24px 55px rgba(13, 50, 84, .15);
+		}
+
+		.hero-slide {
+			position: absolute;
+			inset: 0;
+			opacity: 0;
+			transform: scale(1.015);
+			transition: opacity .7s ease, transform 1.1s ease;
+		}
+
+		.hero-slide.is-active {
+			opacity: 1;
+			transform: scale(1);
+		}
+
+		.hero-slide img {
 			display: block;
 			width: 100%;
-			height: auto;
+			height: 100%;
+			object-fit: cover;
 		}
+
+		.hero-slide--capture img {
+			object-fit: contain;
+			background: var(--navy-dark);
+		}
+
+		.hero-slide-kicker {
+			position: absolute;
+			top: 14px;
+			left: 14px;
+			padding: 7px 11px;
+			border: 1px solid rgba(255, 255, 255, .6);
+			border-radius: 999px;
+			background: rgba(6, 34, 61, .84);
+			color: var(--white);
+			font-size: .68rem;
+			font-weight: 800;
+			letter-spacing: .06em;
+			text-transform: uppercase;
+			backdrop-filter: blur(8px);
+		}
+
+		.hero-carousel-controls {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 10px;
+			margin-top: 14px;
+		}
+
+		.hero-carousel-button,
+		.hero-carousel-dot {
+			border: 1px solid rgba(13, 50, 84, .28);
+			background: var(--white);
+			color: var(--navy);
+			cursor: pointer;
+		}
+
+		.hero-carousel-button {
+			min-width: 44px;
+			min-height: 44px;
+			border-radius: 999px;
+			font: inherit;
+			font-size: 1rem;
+			font-weight: 800;
+		}
+
+		.hero-carousel-dots {
+			display: flex;
+			align-items: center;
+			gap: 7px;
+		}
+
+		.hero-carousel-dot {
+			position: relative;
+			width: 36px;
+			height: 44px;
+			padding: 0;
+			border: 0;
+			background: transparent;
+		}
+
+		.hero-carousel-dot::before {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: 11px;
+			height: 11px;
+			border: 1px solid rgba(13, 50, 84, .28);
+			border-radius: 50%;
+			background: var(--white);
+			content: "";
+			transform: translate(-50%, -50%);
+		}
+
+		.hero-carousel-dot[aria-current="true"]::before {
+			border-color: var(--blue);
+			background: var(--blue);
+			box-shadow: 0 0 0 3px rgba(23, 105, 210, .14);
+		}
+
+		.hero-carousel-button:hover,
+		.hero-carousel-button:focus-visible,
+		.hero-carousel-dot:focus-visible {
+			outline: 2px solid rgba(23, 105, 210, .25);
+			outline-offset: 2px;
+		}
+
+		.hero-carousel-dot:hover::before,
+		.hero-carousel-dot:focus-visible::before { border-color: var(--blue); }
 
 		.hero-visual figcaption {
 			max-width: 660px;
@@ -572,7 +691,8 @@
 
 		@media (prefers-reduced-motion: reduce) {
 			html { scroll-behavior: auto; }
-			.button { transition: none; }
+			.button,
+			.hero-slide { transition: none; }
 		}
 	</style>
 </head>
@@ -587,7 +707,7 @@
 					<a href="#learning-cycle">Learning cycle</a>
 					<a href="#mobile-mission">Mobile mission</a>
 				</nav>
-				<a class="button" href="TrackerStudentMobile.html?v=20260809-sm30">Launch Tracker</a>
+				<a class="button" href="TrackerStudentMobile.html?v=20260809-sm31">Launch Tracker</a>
 			</div>
 		</div>
 	</header>
@@ -598,14 +718,37 @@
 				<h1 id="page-title">From Motion to Meaning</h1>
 				<p>Video analysis turns everyday movement into evidence students can question, measure and explain.</p>
 				<div class="button-row">
-					<a class="button" href="TrackerStudentMobile.html?v=20260809-sm30">Launch the mobile workspace</a>
+					<a class="button" href="TrackerStudentMobile.html?v=20260809-sm31">Launch the mobile workspace</a>
 					<a class="text-link" href="https://github.com/lookang/tracker/tree/StudentMobile">View source on GitHub <span aria-hidden="true">→</span></a>
 					<a class="text-link" href="mobile-enhancements/CHANGELOG.md">Read the project history <span aria-hidden="true">→</span></a>
 				</div>
 			</div>
-			<figure class="hero-visual">
-				<img src="mobile-enhancements/tracker-mobile-pedagogy-hero.png" width="1693" height="953" alt="A phone displaying a bouncing-ball video with tracked positions, coordinate axes and a position-time graph.">
-				<figcaption>An everyday event becomes a measurable trajectory and a model students can test.</figcaption>
+			<figure class="hero-visual hero-carousel" data-hero-carousel aria-roledescription="carousel" aria-label="Tracker Mobile in learning">
+				<div class="hero-carousel-frame">
+					<div class="hero-slide" data-caption="An everyday event becomes a measurable trajectory and a model students can test." role="group" aria-roledescription="slide" aria-label="1 of 4">
+						<img src="mobile-enhancements/tracker-mobile-pedagogy-hero.png" width="1693" height="953" alt="A phone illustrating a bouncing-ball video with tracked positions, coordinate axes and a position-time graph.">
+						<span class="hero-slide-kicker">Concept overview</span>
+					</div>
+					<div class="hero-slide hero-slide--capture" data-caption="Real Tracker Mobile capture: a falling object connected directly to its measured position-time graph." role="group" aria-roledescription="slide" aria-label="2 of 4">
+						<img src="mobile-enhancements/tracker-mobile-real-dollar-drop.png" width="1280" height="720" alt="Tracker Mobile analysing a falling dollar note alongside its position-time graph.">
+						<span class="hero-slide-kicker">Live application capture</span>
+					</div>
+					<div class="hero-slide hero-slide--capture" data-caption="Real Tracker Mobile capture: marked ball-toss positions linked with displacement, velocity and acceleration plots." role="group" aria-roledescription="slide" aria-label="3 of 4">
+						<img src="mobile-enhancements/tracker-mobile-real-ball-toss.png" width="1000" height="720" alt="Tracker Mobile showing a tracked ball-toss arc with displacement, velocity and acceleration plots.">
+						<span class="hero-slide-kicker">Live application capture</span>
+					</div>
+					<div class="hero-slide hero-slide--capture" data-caption="Real Tracker Mobile capture: video evidence, coordinate axes, a model track and three synchronized graphs." role="group" aria-roledescription="slide" aria-label="4 of 4">
+						<img src="mobile-enhancements/tracker-mobile-real-bouncing-model.png" width="1000" height="720" alt="Tracker Mobile comparing a bouncing motion video and model with position, velocity and acceleration graphs.">
+						<span class="hero-slide-kicker">Live application capture</span>
+					</div>
+				</div>
+				<div class="hero-carousel-controls" aria-label="Hero image controls">
+					<button class="hero-carousel-button" type="button" data-carousel-previous aria-label="Show previous image">←</button>
+					<div class="hero-carousel-dots" data-carousel-dots aria-label="Choose a hero image"></div>
+					<button class="hero-carousel-button" type="button" data-carousel-next aria-label="Show next image">→</button>
+					<button class="hero-carousel-button" type="button" data-carousel-toggle aria-label="Pause image rotation">Ⅱ</button>
+				</div>
+				<figcaption data-carousel-caption>An everyday event becomes a measurable trajectory and a model students can test.</figcaption>
 			</figure>
 		</section>
 
@@ -721,7 +864,7 @@
 					<p>Film a motion, mark the evidence, and let the graph begin the conversation.</p>
 				</div>
 				<div class="button-row">
-					<a class="button" href="TrackerStudentMobile.html?v=20260809-sm30">Open Tracker Student Mobile</a>
+					<a class="button" href="TrackerStudentMobile.html?v=20260809-sm31">Open Tracker Student Mobile</a>
 					<a class="text-link" href="https://github.com/lookang/tracker/tree/StudentMobile">Explore the StudentMobile source <span aria-hidden="true">→</span></a>
 					<a class="text-link" href="mobile-enhancements/CHANGELOG.md">View the change log <span aria-hidden="true">→</span></a>
 				</div>
@@ -729,6 +872,84 @@
 		</section>
 	</main>
 
-	<footer class="site-footer">Tracker Student Mobile · <a href="TrackerStudentMobile.html?v=20260809-sm30">Open the app</a> · <a href="https://github.com/lookang/tracker/tree/StudentMobile">Source code</a> · Built on the open-source <a href="https://opensourcephysics.github.io/tracker-website/">Tracker project</a> by <a href="https://iwant2study.org/">lookang</a></footer>
+	<footer class="site-footer">Tracker Student Mobile · <a href="TrackerStudentMobile.html?v=20260809-sm31">Open the app</a> · <a href="https://github.com/lookang/tracker/tree/StudentMobile">Source code</a> · Built on the open-source <a href="https://opensourcephysics.github.io/tracker-website/">Tracker project</a> by <a href="https://iwant2study.org/">lookang</a></footer>
+	<script>
+		(function () {
+			var carousel = document.querySelector("[data-hero-carousel]");
+			if (!carousel) return;
+
+			var slides = Array.prototype.slice.call(carousel.querySelectorAll(".hero-slide"));
+			var dotsHost = carousel.querySelector("[data-carousel-dots]");
+			var caption = carousel.querySelector("[data-carousel-caption]");
+			var previous = carousel.querySelector("[data-carousel-previous]");
+			var next = carousel.querySelector("[data-carousel-next]");
+			var toggle = carousel.querySelector("[data-carousel-toggle]");
+			var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+			var current = Math.floor(Math.random() * slides.length);
+			var timer = null;
+			var pausedByUser = false;
+			var dots = [];
+
+			function showSlide(index, announce) {
+				current = (index + slides.length) % slides.length;
+				slides.forEach(function (slide, slideIndex) {
+					var active = slideIndex === current;
+					slide.classList.toggle("is-active", active);
+					slide.setAttribute("aria-hidden", active ? "false" : "true");
+				});
+				dots.forEach(function (dot, dotIndex) {
+					dot.setAttribute("aria-current", dotIndex === current ? "true" : "false");
+				});
+				caption.setAttribute("aria-live", announce ? "polite" : "off");
+				caption.textContent = slides[current].getAttribute("data-caption");
+			}
+
+			function stopRotation() {
+				if (timer) window.clearInterval(timer);
+				timer = null;
+			}
+
+			function startRotation() {
+				stopRotation();
+				if (pausedByUser || reducedMotion.matches || document.hidden) return;
+				timer = window.setInterval(function () {
+					showSlide(current + 1, false);
+				}, 6500);
+			}
+
+			function manualShow(index) {
+				showSlide(index, true);
+				startRotation();
+			}
+
+			slides.forEach(function (slide, index) {
+				var dot = document.createElement("button");
+				dot.type = "button";
+				dot.className = "hero-carousel-dot";
+				dot.setAttribute("aria-label", "Show image " + (index + 1) + " of " + slides.length);
+				dot.addEventListener("click", function () { manualShow(index); });
+				dotsHost.appendChild(dot);
+				dots.push(dot);
+			});
+
+			previous.addEventListener("click", function () { manualShow(current - 1); });
+			next.addEventListener("click", function () { manualShow(current + 1); });
+			toggle.addEventListener("click", function () {
+				pausedByUser = !pausedByUser;
+				toggle.textContent = pausedByUser ? "▶" : "Ⅱ";
+				toggle.setAttribute("aria-label", pausedByUser ? "Resume image rotation" : "Pause image rotation");
+				startRotation();
+			});
+			carousel.addEventListener("mouseenter", stopRotation);
+			carousel.addEventListener("mouseleave", startRotation);
+			document.addEventListener("visibilitychange", startRotation);
+			if (typeof reducedMotion.addEventListener === "function") {
+				reducedMotion.addEventListener("change", startRotation);
+			}
+
+			showSlide(current, false);
+			startRotation();
+		})();
+	</script>
 </body>
 </html>
